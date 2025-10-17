@@ -27,9 +27,18 @@ import com.google.firebase.auth.auth
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.smartguard.app.model.QuizResult
-import com.smartguard.app.ui.*
-import com.smartguard.app.ui.quiz.QuizScreen
-import com.smartguard.app.ui.theme.SmartGuardTheme
+import com.smartguard.app.mainapp.*
+import com.smartguard.app.mainapp.admin.AdminHomeScreen
+import com.smartguard.app.mainapp.admin.AdminQuizManagerScreen
+import com.smartguard.app.mainapp.quiz.QuizScreen
+import com.smartguard.app.mainapp.theme.SmartGuardTheme
+import com.smartguard.app.mainapp.user.HistoryScreen
+import com.smartguard.app.mainapp.user.HomeScreen
+import com.smartguard.app.mainapp.user.ProfileScreen
+import com.smartguard.app.mainapp.user.QuizOverviewScreen
+import com.smartguard.app.mainapp.user.ScamChatGameScreen
+import com.smartguard.app.mainapp.user.ScenarioScreen
+import com.smartguard.app.mainapp.user.TipsScreen
 import com.smartguard.app.viewmodel.AuthViewModel
 
 class MainActivity : ComponentActivity() {
