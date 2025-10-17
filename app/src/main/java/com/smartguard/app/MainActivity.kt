@@ -40,6 +40,7 @@ import com.smartguard.app.mainapp.user.ScamChatGameScreen
 import com.smartguard.app.mainapp.user.ScenarioScreen
 import com.smartguard.app.mainapp.user.TipsScreen
 import com.smartguard.app.viewmodel.AuthViewModel
+import com.smartguard.app.mainapp.user.CourseDashboardScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,7 +92,7 @@ fun AppNavigation() {
             composable("home") { HomeScreen(navController, authViewModel) }
             composable("login") { LoginScreen(navController, authViewModel) }
             composable("profile") { ProfileScreen(navController, authViewModel) }
-            composable("tips") { TipsScreen(navController) }
+            composable("tips") { CourseDashboardScreen(navController) }
             composable("quiz") { QuizScreen(navController) }
             composable("scam chat") { ScamChatGameScreen(navController) }
             composable("scenarios") { ScenarioScreen(navController) }
