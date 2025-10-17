@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,9 +18,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.smartguard.app.model.QuizResult
@@ -33,7 +36,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Request SMS permissions
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -44,7 +47,7 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        // ❌ Removed anonymous login to allow proper admin detection
+
 
         setContent {
             SmartGuardTheme {
@@ -96,8 +99,13 @@ fun AppNavigation() {
             }
 
             composable("admin") {
+                AdminHomeScreen(navController, onLogout = { logout(navController) })
+            }
+
+            composable("admin_quiz_manager") {
                 AdminQuizManagerScreen(navController)
             }
+
         }
     } else {
         // Optional: show loading spinner while role is being checked
@@ -108,6 +116,14 @@ fun AppNavigation() {
         }
     }
 }
+
+fun logout(nav: NavController) {
+    Firebase.auth.signOut()
+    nav.navigate("login") {
+        popUpTo("admin") { inclusive = true }
+    }
+}
+
 
 
 @Preview(showBackground = true)
