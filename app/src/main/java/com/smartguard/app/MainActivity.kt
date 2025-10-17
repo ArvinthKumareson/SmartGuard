@@ -105,6 +105,22 @@ fun AppNavigation() {
             composable("admin_quiz_manager") {
                 AdminQuizManagerScreen(navController)
             }
+            composable(
+                route = "quizOverview?resultsJson={resultsJson}",
+                arguments = listOf(navArgument("resultsJson") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val json = backStackEntry.arguments?.getString("resultsJson") ?: ""
+                val type = object : TypeToken<List<QuizResult>>() {}.type
+                val results = try {
+                    Gson().fromJson<List<QuizResult>>(java.net.URLDecoder.decode(json, "UTF-8"), type)
+                } catch (e: Exception) {
+                    emptyList()
+                }
+
+                QuizOverviewScreen(results) {
+                    navController.popBackStack()
+                }
+            }
 
         }
     } else {

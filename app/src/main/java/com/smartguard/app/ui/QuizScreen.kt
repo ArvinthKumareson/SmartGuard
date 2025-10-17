@@ -20,7 +20,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.gson.Gson
 import com.smartguard.app.R
-import com.smartguard.app.model.QuizQ
 import com.smartguard.app.model.QuizResult
 import com.smartguard.app.ui.BottomNavigationBar
 import com.smartguard.app.ui.GradientButton
@@ -47,6 +46,7 @@ fun YouTubePlayer(videoId: String) {
 @Composable
 fun QuizScreen(nav: NavController, vm: QuizUserViewModel = viewModel()) {
     val quiz by vm.quiz.collectAsState()
+    val isLoading by vm.isLoading.collectAsState()
     var index by remember { mutableStateOf(0) }
     val selected = remember(quiz) {
         mutableStateListOf<Int?>().apply { repeat(quiz.size) { add(null) } }
@@ -71,82 +71,89 @@ fun QuizScreen(nav: NavController, vm: QuizUserViewModel = viewModel()) {
             },
             bottomBar = { BottomNavigationBar(nav) }
         ) { padding ->
-            if (quiz.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color.White)
+            when {
+                isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color.White)
+                    }
                 }
-                return@Scaffold
-            }
-
-            val q = quiz[index]
-
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Text("Question ${index + 1} of ${quiz.size}", style = MaterialTheme.typography.titleMedium, color = Color.White)
-                Spacer(Modifier.height(8.dp))
-                Text(q.question, style = MaterialTheme.typography.bodyLarge, color = Color.White)
-                Spacer(Modifier.height(16.dp))
-
-                q.videoId?.let {
-                    YouTubePlayer(it)
-                    Spacer(Modifier.height(16.dp))
+                quiz.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No quiz available", color = Color.White)
+                    }
                 }
+                else -> {
+                    val q = quiz[index]
 
-                q.choices.forEachIndexed { i, c ->
-                    val checked = selected[index] == i
-                    Card(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
-                        onClick = { selected[index] = i }
+                            .padding(padding)
+                            .fillMaxSize()
+                            .padding(16.dp)
                     ) {
-                        Row(
-                            Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = checked,
-                                onClick = { selected[index] = i },
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = Color.White,
-                                    unselectedColor = Color.Gray
-                                )
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(c, color = Color.White)
+                        Text("Question ${index + 1} of ${quiz.size}", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                        Spacer(Modifier.height(8.dp))
+                        Text(q.question, style = MaterialTheme.typography.bodyLarge, color = Color.White)
+                        Spacer(Modifier.height(16.dp))
+
+                        q.videoId?.let {
+                            YouTubePlayer(it)
+                            Spacer(Modifier.height(16.dp))
                         }
-                    }
-                }
 
-                Spacer(Modifier.height(24.dp))
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    if (index > 0) {
-                        GradientButton("Back", onClick = { index-- }, modifier = Modifier.weight(1f))
-                    }
-                    if (index < quiz.lastIndex) {
-                        GradientButton("Next", onClick = { index++ }, modifier = Modifier.weight(1f))
-                    }
-                    if (index == quiz.lastIndex) {
-                        GradientButton("Submit", onClick = {
-                            val results = quiz.mapIndexed { i, q ->
-                                QuizResult(
-                                    question = q.question,
-                                    selectedAnswer = selected[i]?.let { q.choices[it] },
-                                    correctAnswer = q.choices[q.answer],
-                                    isCorrect = selected[i] == q.answer
-                                )
+                        q.choices.forEachIndexed { i, c ->
+                            val checked = selected[index] == i
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
+                                onClick = { selected[index] = i }
+                            ) {
+                                Row(
+                                    Modifier
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
+                                        selected = checked,
+                                        onClick = { selected[index] = i },
+                                        colors = RadioButtonDefaults.colors(
+                                            selectedColor = Color.White,
+                                            unselectedColor = Color.Gray
+                                        )
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(c, color = Color.White)
+                                }
                             }
-                            val json = Gson().toJson(results)
-                            nav.navigate("quizOverview?resultsJson=${java.net.URLEncoder.encode(json, "UTF-8")}")
-                        }, modifier = Modifier.weight(1f))
+                        }
+
+                        Spacer(Modifier.height(24.dp))
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            if (index > 0) {
+                                GradientButton("Back", onClick = { index-- }, modifier = Modifier.weight(1f))
+                            }
+                            if (index < quiz.lastIndex) {
+                                GradientButton("Next", onClick = { index++ }, modifier = Modifier.weight(1f))
+                            }
+                            if (index == quiz.lastIndex) {
+                                GradientButton("Submit", onClick = {
+                                    val results = quiz.mapIndexed { i, q ->
+                                        QuizResult(
+                                            question = q.question,
+                                            selectedAnswer = selected[i]?.let { q.choices[it] },
+                                            correctAnswer = q.choices[q.answer],
+                                            isCorrect = selected[i] == q.answer
+                                        )
+                                    }
+                                    val json = Gson().toJson(results)
+                                    nav.navigate("quizOverview?resultsJson=${java.net.URLEncoder.encode(json, "UTF-8")}")
+                                }, modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
