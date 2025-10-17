@@ -21,9 +21,10 @@ import com.google.gson.Gson
 import com.smartguard.app.R
 import com.smartguard.app.model.QuizResult
 import com.smartguard.app.mainapp.user.BottomNavigationBar
-import com.smartguard.app.mainapp.GradientButton
+import com.smartguard.app.mainapp.resources.GradientButton
 import com.smartguard.app.mainapp.common.BackgroundWrapper
 import com.smartguard.app.viewmodel.QuizUserViewModel
+import java.net.URLEncoder
 
 @Composable
 fun YouTubePlayer(videoId: String) {
@@ -149,7 +150,7 @@ fun QuizScreen(nav: NavController, vm: QuizUserViewModel = viewModel()) {
                                         )
                                     }
                                     val json = Gson().toJson(results)
-                                    nav.navigate("quizOverview?resultsJson=${java.net.URLEncoder.encode(json, "UTF-8")}")
+                                    nav.navigate("quizOverview?resultsJson=${URLEncoder.encode(json, "UTF-8")}")
                                 }, modifier = Modifier.weight(1f))
                             }
                         }

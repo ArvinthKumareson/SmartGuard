@@ -1,5 +1,5 @@
 // NavigationBar.kt
-package com.smartguard.app.mainapp
+package com.smartguard.app.mainapp.resources
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home

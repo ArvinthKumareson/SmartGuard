@@ -19,8 +19,8 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.smartguard.app.viewmodel.AuthViewModel
 import com.smartguard.app.R
-import com.smartguard.app.mainapp.GradientButton
-import com.smartguard.app.mainapp.SmartGuardBottomBar
+import com.smartguard.app.mainapp.resources.GradientButton
+import com.smartguard.app.mainapp.resources.SmartGuardBottomBar
 
 @Composable
 fun ProfileScreen(nav: NavController, vm: AuthViewModel) {

@@ -1,4 +1,4 @@
-package com.smartguard.app.mainapp
+package com.smartguard.app.mainapp.resources
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

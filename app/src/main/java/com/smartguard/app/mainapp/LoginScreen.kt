@@ -1,6 +1,7 @@
 package com.smartguard.app.mainapp
 
 import android.util.Log
+import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,6 +23,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.smartguard.app.R
 import com.smartguard.app.mainapp.common.BackgroundWrapper
+import com.smartguard.app.mainapp.resources.GradientButton
 import com.smartguard.app.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -135,7 +137,8 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = viewModel()) {
                                     else errorMessage = "Signup failed"
                                 }
                             } else {
-                                val isValidEmail = android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
+                                val isValidEmail =
+                                    Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
                                 if (!isValidEmail) {
                                     errorMessage = "Invalid email format"
                                     return@GradientButton
@@ -147,14 +150,18 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = viewModel()) {
                                             .addOnSuccessListener { doc ->
                                                 val role = doc.getString("role")
                                                 Log.d("Login", "Role fetched: $role")
-                                                val target = if (role == "admin") "admin" else "home"
+                                                val target =
+                                                    if (role == "admin") "admin" else "home"
                                                 Log.d("Login", "Navigating to: $target")
                                                 nav.navigate(target) {
                                                     popUpTo("login") { inclusive = true }
                                                 }
                                             }
                                             .addOnFailureListener {
-                                                Log.e("Login", "Firestore fetch failed: ${it.message}")
+                                                Log.e(
+                                                    "Login",
+                                                    "Firestore fetch failed: ${it.message}"
+                                                )
                                                 errorMessage = "Failed to fetch role"
                                             }
                                     } else {

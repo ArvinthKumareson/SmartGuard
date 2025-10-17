@@ -11,7 +11,7 @@ import com.smartguard.app.mainapp.common.BackgroundWrapper
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import com.smartguard.app.model.QuizResult
-import com.smartguard.app.mainapp.GradientButton
+import com.smartguard.app.mainapp.resources.GradientButton
 
 @Composable
 fun QuizOverviewScreen(results: List<QuizResult>, onBack: () -> Unit) {

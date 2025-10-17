@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.smartguard.app.mainapp.SmartGuardBottomBar
+import com.smartguard.app.mainapp.resources.SmartGuardBottomBar
 import kotlinx.coroutines.delay
 
 data class ScamScenario(
