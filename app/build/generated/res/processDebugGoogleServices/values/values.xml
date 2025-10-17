@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">895939354335</string>
+    <string name="google_api_key" translatable="false">AIzaSyAAgMV2RLifbyIAdlDfxaURqx04-1HOmmQ</string>
+    <string name="google_app_id" translatable="false">1:895939354335:android:adf1ae05791c60d862936a</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyAAgMV2RLifbyIAdlDfxaURqx04-1HOmmQ</string>
+    <string name="google_storage_bucket" translatable="false">smartguard-1b066.firebasestorage.app</string>
+    <string name="project_id" translatable="false">smartguard-1b066</string>
+</resources>

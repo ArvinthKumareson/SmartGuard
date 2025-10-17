@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules xmlns:tools="http://schemas.android.com/tools">
+    <!-- Keep all app data by default -->
+    <cloud-backup>
+        <exclude domain="sharedpref" path="DeviceID.xml" /> <!-- example -->
+    </cloud-backup>
+</data-extraction-rules>
