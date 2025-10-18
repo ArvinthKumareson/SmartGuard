@@ -3,21 +3,21 @@ package com.smartguard.app.notifications
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.smartguard.app.data.DetectionEngine
-import com.smartguard.app.data.HistoryStore
-import com.smartguard.app.data.KeywordRepository
+import com.smartguard.app.data.EncryptedKeywords
 import com.smartguard.app.data.ScanRecord
+import com.smartguard.app.data.UserHistoryStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SmartGuardNotificationListener : NotificationListenerService() {
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val engine = DetectionEngine(KeywordRepository.getKeywords())
-    private lateinit var store: HistoryStore
+    private lateinit var engine: DetectionEngine
 
     override fun onCreate() {
         super.onCreate()
-        store = HistoryStore(applicationContext)
+        val keywords = EncryptedKeywords.getKeywords(applicationContext)
+        engine = DetectionEngine(keywords)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
@@ -32,7 +32,8 @@ class SmartGuardNotificationListener : NotificationListenerService() {
         val matches = engine.scan(text)
         if (matches.isNotEmpty()) {
             scope.launch {
-                store.add(
+                val store = UserHistoryStore(applicationContext)
+                store.save(
                     ScanRecord(
                         message = text,
                         matchedKeywords = matches,

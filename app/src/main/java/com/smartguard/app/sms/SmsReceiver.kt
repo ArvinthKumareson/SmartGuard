@@ -7,9 +7,10 @@ import android.os.Bundle
 import android.telephony.SmsMessage
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.smartguard.app.data.DetectionEngine
-import com.smartguard.app.data.KeywordRepository
+import com.smartguard.app.data.EncryptedKeywords
+import com.smartguard.app.data.ScanRecord
+import com.smartguard.app.data.UserHistoryStore
 import com.smartguard.app.db.AppDatabase
 import com.smartguard.app.db.ScanRecordEntity
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +35,8 @@ class SmsReceiver : BroadcastReceiver() {
         val text = messages.joinToString(" ") { it.messageBody ?: "" }.trim()
         if (text.isBlank()) return
 
-        val engine = DetectionEngine(KeywordRepository.getKeywords())
+        val keywords = EncryptedKeywords.getKeywords(context)
+        val engine = DetectionEngine(keywords)
         val matches = engine.scan(text)
 
         if (matches.isNotEmpty()) {
@@ -53,28 +55,18 @@ class SmsReceiver : BroadcastReceiver() {
                     userId = userId
                 )
 
-                // ✅ Save locally
                 db.scanRecordDao().insert(entity)
 
-                // ✅ Sync to Firestore
-                val doc = mapOf(
-                    "message" to entity.message,
-                    "matched_keywords" to entity.matchedKeywords,
-                    "source_app" to entity.sourceApp,
-                    "timestamp" to entity.timestamp
+                // ✅ Centralized Firestore sync
+                val store = UserHistoryStore(context)
+                store.save(
+                    ScanRecord(
+                        message = text,
+                        matchedKeywords = matches,
+                        sourceApp = "SMS",
+                        timestamp = entity.timestamp
+                    )
                 )
-
-                FirebaseFirestore.getInstance()
-                    .collection("users")
-                    .document(userId)
-                    .collection("scamMessages")
-                    .add(doc)
-                    .addOnSuccessListener {
-                        Log.d("SmsReceiver", "Synced SMS to Firestore for user: $userId")
-                    }
-                    .addOnFailureListener {
-                        Log.e("SmsReceiver", "Firestore sync failed: ${it.message}")
-                    }
             }
         }
     }

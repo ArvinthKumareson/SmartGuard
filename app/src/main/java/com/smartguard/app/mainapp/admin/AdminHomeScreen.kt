@@ -43,6 +43,10 @@ fun AdminHomeScreen(nav: NavController, onLogout: () -> Unit) {
                 nav.navigate("admin_scam_reports")
             }
 
+            AdminFeatureCard("Manage Scam Keywords") {
+                nav.navigate("admin_keywords")
+            }
+
             AdminFeatureCard("User Feedback") {
                 nav.navigate("admin_feedback")
             }

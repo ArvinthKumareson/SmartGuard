@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.smartguard.app.data.DetectionEngine
-import com.smartguard.app.data.KeywordRepository
+import com.smartguard.app.data.EncryptedKeywords
 import com.smartguard.app.data.ScanRecord
 import com.smartguard.app.db.AppDatabase
 import com.smartguard.app.db.ScanRecordEntity
@@ -25,7 +25,7 @@ data class ScanResult(
 class HistoryViewModel(app: Application) : AndroidViewModel(app) {
 
     private val db = AppDatabase.getInstance(app.applicationContext)
-    private val engine = DetectionEngine(KeywordRepository.getKeywords())
+    private val engine = DetectionEngine(EncryptedKeywords.getKeywords(app.applicationContext))
     private val firestore = FirebaseFirestore.getInstance()
 
     // ✅ Local scan history scoped to current user
@@ -51,11 +51,41 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val smsOnly: StateFlow<List<ScanResult>> = history
+    // ✅ Cloud scan history from Firestore
+    val cloudHistory: StateFlow<List<ScanResult>> = flow {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        val snapshot = firestore.collection("users")
+            .document(userId)
+            .collection("scamMessages")
+            .get()
+            .await()
+
+        val results = snapshot.documents.mapNotNull { doc ->
+            ScanResult(
+                message = doc.getString("message") ?: return@mapNotNull null,
+                matchedKeywords = doc.getString("matched_keywords")
+                    ?.split(",")
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotEmpty() }
+                    ?: emptyList(),
+                sourceApp = doc.getString("source_app") ?: "Unknown",
+                timestamp = doc.getLong("timestamp") ?: 0L
+            )
+        }
+
+        emit(results)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // ✅ Combined scan history
+    val fullHistory: StateFlow<List<ScanResult>> = combine(history, cloudHistory) { local, cloud ->
+        (local + cloud).distinctBy { it.message + it.timestamp }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val smsOnly: StateFlow<List<ScanResult>> = fullHistory
         .map { list -> list.filter { it.sourceApp == "SMS" } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val riskyMessages: StateFlow<List<ScanResult>> = history
+    val riskyMessages: StateFlow<List<ScanResult>> = fullHistory
         .map { list -> list.filter { it.matchedKeywords.size >= 2 } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -101,33 +131,7 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
             )
 
             demoMessages.forEach { msg ->
-                addRecord(msg, "Demo") // ✅ Reuse addRecord for consistency
-            }
-        }
-    }
-
-    // 🧪 Optional: Load cloud history if needed later
-    fun loadCloudHistory(onResult: (List<ScanResult>) -> Unit) {
-        viewModelScope.launch {
-            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
-            try {
-                val snapshot = firestore.collection("users")
-                    .document(userId)
-                    .collection("scamMessages")
-                    .get()
-                    .await()
-
-                val results = snapshot.documents.mapNotNull { doc ->
-                    ScanResult(
-                        message = doc.getString("message") ?: return@mapNotNull null,
-                        matchedKeywords = doc.getString("matched_keywords")?.split(",")?.map { it.trim() } ?: emptyList(),
-                        sourceApp = doc.getString("source_app") ?: "Unknown",
-                        timestamp = doc.getLong("timestamp") ?: 0L
-                    )
-                }
-                onResult(results)
-            } catch (e: Exception) {
-                onResult(emptyList())
+                addRecord(msg, "Demo")
             }
         }
     }

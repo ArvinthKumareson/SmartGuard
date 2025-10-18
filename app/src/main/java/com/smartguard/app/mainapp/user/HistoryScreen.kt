@@ -19,15 +19,14 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 import androidx.compose.ui.graphics.Color
 
-
 @Composable
 fun HistoryScreen(nav: NavController, vm: HistoryViewModel = viewModel()) {
-    val items by vm.history.collectAsState(initial = emptyList())
+    val items by vm.fullHistory.collectAsState(initial = emptyList()) // Use fullHistory to include cloud records
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Potential Scam Messages" , color = Color.White) },
+                title = { Text("Potential Scam Messages", color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E))
             )
         }
@@ -37,11 +36,11 @@ fun HistoryScreen(nav: NavController, vm: HistoryViewModel = viewModel()) {
                 modifier = Modifier
                     .padding(padding)
                     .padding(16.dp)
-            )  {
+            ) {
                 Text(
                     "This list shows alerts captured by SmartGuard (from notification listener or manual checks).",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFFFFFFFF)
+                    color = Color.White
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -57,9 +56,7 @@ fun HistoryScreen(nav: NavController, vm: HistoryViewModel = viewModel()) {
                     items(items) { item ->
                         val source = item.sourceApp.ifBlank { "Unknown App" }
                         val message = item.message.ifBlank { "No message content" }
-                        val keywords =
-                            item.matchedKeywords.takeIf { it.isNotEmpty() }?.joinToString()
-                                ?: "None"
+                        val keywords = item.matchedKeywords.takeIf { it.isNotEmpty() }?.joinToString() ?: "None"
                         val formattedTime = runCatching {
                             DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(item.timestamp))
                         }.getOrElse {
@@ -73,12 +70,9 @@ fun HistoryScreen(nav: NavController, vm: HistoryViewModel = viewModel()) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(message)
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text("Matched: $keywords")
+                                Text("Matched: $keywords", color = Color(0xFFDDDDDD))
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    "Time: $formattedTime",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                                Text("Time: $formattedTime", style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }

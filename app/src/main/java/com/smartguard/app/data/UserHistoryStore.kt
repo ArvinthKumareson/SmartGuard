@@ -14,7 +14,7 @@ class UserHistoryStore(private val context: Context) {
 
         val doc = mapOf(
             "message" to record.message,
-            "matched_keywords" to record.matchedKeywords,
+            "matched_keywords" to record.matchedKeywords.joinToString(","), // ✅ Store as comma-separated string
             "source_app" to record.sourceApp,
             "timestamp" to record.timestamp
         )
@@ -38,7 +38,11 @@ class UserHistoryStore(private val context: Context) {
             try {
                 ScanRecord(
                     message = doc.getString("message") ?: return@mapNotNull null,
-                    matchedKeywords = doc.getString("matched_keywords")?.split(",")?.map { it.trim() } ?: emptyList(),
+                    matchedKeywords = doc.getString("matched_keywords")
+                        ?.split(",")
+                        ?.map { it.trim() }
+                        ?.filter { it.isNotEmpty() }
+                        ?: emptyList(),
                     sourceApp = doc.getString("source_app"),
                     timestamp = doc.getLong("timestamp") ?: 0L
                 )
