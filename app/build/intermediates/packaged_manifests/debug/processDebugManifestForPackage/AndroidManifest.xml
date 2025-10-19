@@ -8,13 +8,15 @@
         android:minSdkVersion="26"
         android:targetSdkVersion="34" />
 
+    <!-- Features -->
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" /> <!-- Optional: Notification listener access to read notifications from other apps -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -42,7 +44,8 @@
         android:label="SmartGuard"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:testOnly="true" >
+        android:testOnly="true"
+        android:usesCleartextTraffic="true" >
         <activity
             android:name="com.smartguard.app.MainActivity"
             android:exported="true"

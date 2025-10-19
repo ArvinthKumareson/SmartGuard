@@ -1,8 +1,11 @@
 package com.smartguard.app
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -10,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -39,19 +43,28 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS),
-                100
-            )
+        // ✅ Request runtime permissions
+        val permissions = mutableListOf(
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.READ_SMS
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        val missing = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missing.toTypedArray(), 100)
         }
 
-
+        // ✅ Sync keywords safely
         lifecycleScope.launch {
-            EncryptedKeywords.syncFromFirestore(applicationContext)
+            try {
+                EncryptedKeywords.syncFromFirestore(applicationContext)
+            } catch (e: Exception) {
+                Log.e("SmartGuard", "Keyword sync failed", e)
+            }
         }
 
         setContent {
@@ -68,16 +81,35 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
-    val currentUser = authViewModel.currentUser.collectAsState().value
+    val currentUser by authViewModel.currentUser.collectAsState()
+    val permissions = arrayOf(
+        Manifest.permission.RECEIVE_SMS,
+        Manifest.permission.READ_SMS
+    )
+
+    val context = LocalContext.current
+
+    if (permissions.any {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }) {
+        ActivityCompat.requestPermissions(context as Activity, permissions, 100)
+    }
+
 
     var startDestination by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(currentUser) {
-        if (currentUser == null || currentUser.isAnonymous) {
+        val user = currentUser
+        if (user == null || user.isAnonymous) {
             startDestination = "login"
         } else {
-            authViewModel.checkAdminStatus { isAdmin ->
-                startDestination = if (isAdmin) "admin" else "home"
+            try {
+                authViewModel.checkAdminStatus { isAdmin ->
+                    startDestination = if (isAdmin) "admin" else "home"
+                }
+            } catch (e: Exception) {
+                Log.e("SmartGuard", "Admin check failed", e)
+                startDestination = "home"
             }
         }
     }
@@ -112,6 +144,7 @@ fun AppNavigation() {
                 val results = try {
                     Gson().fromJson<List<QuizResult>>(java.net.URLDecoder.decode(json, "UTF-8"), type)
                 } catch (e: Exception) {
+                    Log.e("SmartGuard", "Failed to parse quiz results", e)
                     emptyList()
                 }
                 QuizOverviewScreen(results) {

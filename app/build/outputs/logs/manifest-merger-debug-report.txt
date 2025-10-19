@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:1-54:12
-INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:1-54:12
-INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:1-54:12
-INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:1-54:12
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:1-56:12
+INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:1-56:12
+INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:1-56:12
+INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:1-56:12
 MERGED from [androidx.room:room-runtime:2.6.1] C:\Users\ugots\.gradle\caches\8.13\transforms\46ceebceebc118c4cd189c18bad9fd5a\transformed\room-runtime-2.6.1\AndroidManifest.xml:17:1-31:12
 MERGED from [androidx.room:room-ktx:2.6.1] C:\Users\ugots\.gradle\caches\8.13\transforms\1e24c2e08ba0404dc14244b927b9e779\transformed\jetified-room-ktx-2.6.1\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-common:2.7.7] C:\Users\ugots\.gradle\caches\8.13\transforms\419e0d74c4bd081554cb319d63c74009\transformed\navigation-common-2.7.7\AndroidManifest.xml:17:1-22:12
@@ -124,70 +124,71 @@ MERGED from [androidx.print:print:1.0.0] C:\Users\ugots\.gradle\caches\8.13\tran
 MERGED from [io.grpc:grpc-android:1.52.1] C:\Users\ugots\.gradle\caches\8.13\transforms\42ffc05b2e065ee1e300a8fe6456db47\transformed\jetified-grpc-android-1.52.1\AndroidManifest.xml:2:1-11:12
 MERGED from [com.google.firebase:protolite-well-known-types:18.0.0] C:\Users\ugots\.gradle\caches\8.13\transforms\0849ba2052cecdb40e3dd54c029e53c9\transformed\jetified-protolite-well-known-types-18.0.0\AndroidManifest.xml:2:1-11:12
 	package
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:3:5-33
 		INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml
 	android:versionName
 		INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml
 	xmlns:tools
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:11-57
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:2:5-51
 	android:versionCode
 		INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml
 	xmlns:android
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:58-116
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:1:11-69
 uses-feature#android.hardware.telephony
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:2:5-88
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:6:5-88
 	android:required
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:2:61-85
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:6:61-85
 	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:2:19-60
-uses-permission#android.permission.POST_NOTIFICATIONS
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:3:5-77
-	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:3:22-74
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:6:19-60
 uses-permission#android.permission.RECEIVE_SMS
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:4:5-5:46
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:9:5-105
 	tools:ignore
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:5:9-43
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:9:68-102
 	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:4:22-67
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:9:22-67
 uses-permission#android.permission.READ_SMS
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:6:5-7:46
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:10:5-102
 	tools:ignore
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:7:9-43
-	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:6:22-64
-uses-permission#android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:8:5-129
-	tools:ignore
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:8:91-126
-	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:8:22-90
-uses-permission#android.permission.VIBRATE
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:9:5-66
-	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:9:22-63
-uses-permission#android.permission.INTERNET
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:10:5-67
-MERGED from [com.google.firebase:firebase-auth:22.3.0] C:\Users\ugots\.gradle\caches\8.13\transforms\974240ec7b7149b6948b0ebfc97cf28c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:25:5-67
-MERGED from [com.google.firebase:firebase-auth:22.3.0] C:\Users\ugots\.gradle\caches\8.13\transforms\974240ec7b7149b6948b0ebfc97cf28c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:25:5-67
-MERGED from [com.google.android.gms:play-services-measurement:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\9d8118b98b7406ee490a2531e2249fbb\transformed\jetified-play-services-measurement-21.5.0\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\9d8118b98b7406ee490a2531e2249fbb\transformed\jetified-play-services-measurement-21.5.0\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement-api:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\8d191ed6164fcd9503b458b72229b135\transformed\jetified-play-services-measurement-api-21.5.0\AndroidManifest.xml:22:5-67
-MERGED from [com.google.android.gms:play-services-measurement-api:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\8d191ed6164fcd9503b458b72229b135\transformed\jetified-play-services-measurement-api-21.5.0\AndroidManifest.xml:22:5-67
-MERGED from [com.google.firebase:firebase-firestore:24.10.0] C:\Users\ugots\.gradle\caches\8.13\transforms\4f89807f3a8fc242a38ad5b733d7af13\transformed\jetified-firebase-firestore-24.10.0\AndroidManifest.xml:11:5-67
-MERGED from [com.google.firebase:firebase-firestore:24.10.0] C:\Users\ugots\.gradle\caches\8.13\transforms\4f89807f3a8fc242a38ad5b733d7af13\transformed\jetified-firebase-firestore-24.10.0\AndroidManifest.xml:11:5-67
-MERGED from [com.google.firebase:firebase-installations:17.2.0] C:\Users\ugots\.gradle\caches\8.13\transforms\146c26ffb0e723e3d7decee7f2f75e84\transformed\jetified-firebase-installations-17.2.0\AndroidManifest.xml:8:5-67
-MERGED from [com.google.firebase:firebase-installations:17.2.0] C:\Users\ugots\.gradle\caches\8.13\transforms\146c26ffb0e723e3d7decee7f2f75e84\transformed\jetified-firebase-installations-17.2.0\AndroidManifest.xml:8:5-67
-MERGED from [com.google.android.gms:play-services-measurement-impl:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\c489ae1ce555b75566570bb48709f2c9\transformed\jetified-play-services-measurement-impl-21.5.0\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement-impl:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\c489ae1ce555b75566570bb48709f2c9\transformed\jetified-play-services-measurement-impl-21.5.0\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement-sdk-api:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\4ef910b886ccec76ef7a5a03c384b0e4\transformed\jetified-play-services-measurement-sdk-api-21.5.0\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement-sdk-api:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\4ef910b886ccec76ef7a5a03c384b0e4\transformed\jetified-play-services-measurement-sdk-api-21.5.0\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.recaptcha:recaptcha:18.1.2] C:\Users\ugots\.gradle\caches\8.13\transforms\5a78b673550add5a391ecdfb8b3eedb6\transformed\jetified-recaptcha-18.1.2\AndroidManifest.xml:7:5-67
-MERGED from [com.google.android.recaptcha:recaptcha:18.1.2] C:\Users\ugots\.gradle\caches\8.13\transforms\5a78b673550add5a391ecdfb8b3eedb6\transformed\jetified-recaptcha-18.1.2\AndroidManifest.xml:7:5-67
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:10:65-99
 	android:name
 		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:10:22-64
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:11:5-77
+	android:name
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:11:22-74
+uses-permission#android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:12:5-129
+	tools:ignore
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:12:91-126
+	android:name
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:12:22-90
+uses-permission#android.permission.VIBRATE
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:13:5-66
+	android:name
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:13:22-63
+uses-permission#android.permission.INTERNET
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:14:5-67
+MERGED from [com.google.firebase:firebase-auth:22.3.0] C:\Users\ugots\.gradle\caches\8.13\transforms\974240ec7b7149b6948b0ebfc97cf28c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:25:5-67
+MERGED from [com.google.firebase:firebase-auth:22.3.0] C:\Users\ugots\.gradle\caches\8.13\transforms\974240ec7b7149b6948b0ebfc97cf28c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:25:5-67
+MERGED from [com.google.android.gms:play-services-measurement:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\9d8118b98b7406ee490a2531e2249fbb\transformed\jetified-play-services-measurement-21.5.0\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\9d8118b98b7406ee490a2531e2249fbb\transformed\jetified-play-services-measurement-21.5.0\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement-api:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\8d191ed6164fcd9503b458b72229b135\transformed\jetified-play-services-measurement-api-21.5.0\AndroidManifest.xml:22:5-67
+MERGED from [com.google.android.gms:play-services-measurement-api:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\8d191ed6164fcd9503b458b72229b135\transformed\jetified-play-services-measurement-api-21.5.0\AndroidManifest.xml:22:5-67
+MERGED from [com.google.firebase:firebase-firestore:24.10.0] C:\Users\ugots\.gradle\caches\8.13\transforms\4f89807f3a8fc242a38ad5b733d7af13\transformed\jetified-firebase-firestore-24.10.0\AndroidManifest.xml:11:5-67
+MERGED from [com.google.firebase:firebase-firestore:24.10.0] C:\Users\ugots\.gradle\caches\8.13\transforms\4f89807f3a8fc242a38ad5b733d7af13\transformed\jetified-firebase-firestore-24.10.0\AndroidManifest.xml:11:5-67
+MERGED from [com.google.firebase:firebase-installations:17.2.0] C:\Users\ugots\.gradle\caches\8.13\transforms\146c26ffb0e723e3d7decee7f2f75e84\transformed\jetified-firebase-installations-17.2.0\AndroidManifest.xml:8:5-67
+MERGED from [com.google.firebase:firebase-installations:17.2.0] C:\Users\ugots\.gradle\caches\8.13\transforms\146c26ffb0e723e3d7decee7f2f75e84\transformed\jetified-firebase-installations-17.2.0\AndroidManifest.xml:8:5-67
+MERGED from [com.google.android.gms:play-services-measurement-impl:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\c489ae1ce555b75566570bb48709f2c9\transformed\jetified-play-services-measurement-impl-21.5.0\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement-impl:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\c489ae1ce555b75566570bb48709f2c9\transformed\jetified-play-services-measurement-impl-21.5.0\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement-sdk-api:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\4ef910b886ccec76ef7a5a03c384b0e4\transformed\jetified-play-services-measurement-sdk-api-21.5.0\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement-sdk-api:21.5.0] C:\Users\ugots\.gradle\caches\8.13\transforms\4ef910b886ccec76ef7a5a03c384b0e4\transformed\jetified-play-services-measurement-sdk-api-21.5.0\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.recaptcha:recaptcha:18.1.2] C:\Users\ugots\.gradle\caches\8.13\transforms\5a78b673550add5a391ecdfb8b3eedb6\transformed\jetified-recaptcha-18.1.2\AndroidManifest.xml:7:5-67
+MERGED from [com.google.android.recaptcha:recaptcha:18.1.2] C:\Users\ugots\.gradle\caches\8.13\transforms\5a78b673550add5a391ecdfb8b3eedb6\transformed\jetified-recaptcha-18.1.2\AndroidManifest.xml:7:5-67
+	android:name
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:14:22-64
 application
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:13:5-53:19
-INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:13:5-53:19
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:16:5-55:19
+INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:16:5-55:19
 MERGED from [androidx.room:room-runtime:2.6.1] C:\Users\ugots\.gradle\caches\8.13\transforms\46ceebceebc118c4cd189c18bad9fd5a\transformed\room-runtime-2.6.1\AndroidManifest.xml:23:5-29:19
 MERGED from [androidx.room:room-runtime:2.6.1] C:\Users\ugots\.gradle\caches\8.13\transforms\46ceebceebc118c4cd189c18bad9fd5a\transformed\room-runtime-2.6.1\AndroidManifest.xml:23:5-29:19
 MERGED from [com.google.android.material:material:1.12.0] C:\Users\ugots\.gradle\caches\8.13\transforms\a7eecace9d2e99412aa34da41df2a5bc\transformed\material-1.12.0\AndroidManifest.xml:22:5-20
@@ -261,67 +262,69 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\ugots\.gradle\cach
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.13.1] C:\Users\ugots\.gradle\caches\8.13\transforms\ad228f6b8bd5519d7bd46c95abdc32d8\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:20:9-35
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:23:9-35
 	android:label
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:18:9-35
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:21:9-35
 	android:fullBackupContent
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:16:9-54
-	android:roundIcon
 		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:19:9-54
+	android:roundIcon
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:22:9-54
 	android:icon
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:17:9-43
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:20:9-43
 	android:allowBackup
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:14:9-35
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:17:9-35
 	android:dataExtractionRules
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:15:9-65
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:18:9-65
+	android:usesCleartextTraffic
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:24:9-44
 activity#com.smartguard.app.MainActivity
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:23:9-31:20
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:26:9-34:20
 	android:exported
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:25:13-36
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:28:13-36
 	android:theme
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:26:13-59
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:29:13-59
 	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:24:13-41
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:27:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:27:13-30:29
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:30:13-33:29
 action#android.intent.action.MAIN
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:28:17-69
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:31:17-69
 	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:28:25-66
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:31:25-66
 category#android.intent.category.LAUNCHER
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:29:17-77
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:32:17-77
 	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:29:27-74
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:32:27-74
 service#com.smartguard.app.notifications.SmartGuardNotificationListener
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:35:9-42:19
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:36:9-43:19
 	android:exported
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:38:13-36
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:39:13-36
 	android:permission
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:37:13-87
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:38:13-87
 	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:36:13-73
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:37:13-73
 intent-filter#action:name:android.service.notification.NotificationListenerService
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:39:13-41:29
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:40:13-42:29
 action#android.service.notification.NotificationListenerService
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:40:17-99
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:41:17-99
 	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:40:25-96
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:41:25-96
 receiver#com.smartguard.app.sms.SmsReceiver
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:45:9-50:20
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:45:9-52:20
 	android:exported
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:45:51-74
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:47:13-36
 	android:permission
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:46:13-66
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:48:13-66
 	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:45:19-50
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:46:13-44
 intent-filter#action:name:android.provider.Telephony.SMS_RECEIVED
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:47:13-49:29
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:49:13-51:29
 	android:priority
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:47:28-50
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:49:28-50
 action#android.provider.Telephony.SMS_RECEIVED
-ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:48:17-82
+ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:50:17-82
 	android:name
-		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:48:25-79
+		ADDED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:50:25-79
 uses-sdk
 INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml

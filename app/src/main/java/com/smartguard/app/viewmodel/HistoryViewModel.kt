@@ -28,7 +28,7 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
     private val engine = DetectionEngine(EncryptedKeywords.getKeywords(app.applicationContext))
     private val firestore = FirebaseFirestore.getInstance()
 
-    // ✅ Local scan history scoped to current user
+    // Local scan history scoped to current user
     val history: StateFlow<List<ScanResult>> = flow {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         emitAll(db.scanRecordDao().recentForUser(userId))
@@ -53,30 +53,40 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
 
     // ✅ Cloud scan history from Firestore
     val cloudHistory: StateFlow<List<ScanResult>> = flow {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-        val snapshot = firestore.collection("users")
-            .document(userId)
-            .collection("scamMessages")
-            .get()
-            .await()
+        try {
+            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@flow
+            val snapshot = firestore.collection("users")
+                .document(userId)
+                .collection("scamMessages")
+                .get()
+                .await()
 
-        val results = snapshot.documents.mapNotNull { doc ->
-            ScanResult(
-                message = doc.getString("message") ?: return@mapNotNull null,
-                matchedKeywords = doc.getString("matched_keywords")
-                    ?.split(",")
-                    ?.map { it.trim() }
-                    ?.filter { it.isNotEmpty() }
-                    ?: emptyList(),
-                sourceApp = doc.getString("source_app") ?: "Unknown",
-                timestamp = doc.getLong("timestamp") ?: 0L
-            )
+            val results = snapshot.documents.mapNotNull { doc ->
+                try {
+                    ScanResult(
+                        message = doc.getString("message") ?: return@mapNotNull null,
+                        matchedKeywords = doc.getString("matched_keywords")
+                            ?.split(",")
+                            ?.map { it.trim() }
+                            ?.filter { it.isNotEmpty() }
+                            ?: emptyList(),
+                        sourceApp = doc.getString("source_app") ?: "Unknown",
+                        timestamp = doc.getLong("timestamp") ?: 0L
+                    )
+                } catch (e: Exception) {
+                    Log.e("SmartGuard", "Invalid Firestore doc: ${doc.id}", e)
+                    null
+                }
+            }
+
+            emit(results)
+        } catch (e: Exception) {
+            Log.e("SmartGuard", "Failed to load cloud history", e)
+            emit(emptyList())
         }
-
-        emit(results)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // ✅ Combined scan history
+    // Combined scan history
     val fullHistory: StateFlow<List<ScanResult>> = combine(history, cloudHistory) { local, cloud ->
         (local + cloud).distinctBy { it.message + it.timestamp }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -89,7 +99,7 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
         .map { list -> list.filter { it.matchedKeywords.size >= 2 } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // ✅ Centralized record insertion for real scans
+    // Centralized record insertion for real scans
     fun addRecord(message: String, source: String) {
         viewModelScope.launch {
             val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
@@ -106,7 +116,7 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // ✅ Firestore sync per user
+    // Firestore sync per user
     private fun syncToCloud(userId: String, entity: ScanRecordEntity) {
         val doc = mapOf(
             "message" to entity.message,
@@ -120,7 +130,7 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
             .add(doc)
     }
 
-    // 🧪 Optional: Demo seeding for debug mode
+    // Demo seeding for debug mode
     fun seedDemoData() {
         viewModelScope.launch {
             val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch

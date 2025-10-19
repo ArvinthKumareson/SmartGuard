@@ -1,5 +1,6 @@
 package com.smartguard.app.sms
 
+import android.R.attr.text
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -19,9 +20,15 @@ import kotlinx.coroutines.launch
 
 class SmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        if (context == null || intent == null) return
+        Log.d("SmsReceiver", "SMS_RECEIVED triggered")
 
+        if (context == null || intent == null) return
         val bundle: Bundle = intent.extras ?: return
+
+        Log.d("SmsReceiver", "Intent action: ${intent.action}")
+        Log.d("SmsReceiver", "Bundle keys: ${bundle.keySet()}")
+        Log.d("SmsReceiver", "Extracted SMS text: $text")
+
         val format = bundle.getString("format")
 
         @Suppress("DEPRECATION")
@@ -41,32 +48,35 @@ class SmsReceiver : BroadcastReceiver() {
 
         if (matches.isNotEmpty()) {
             CoroutineScope(Dispatchers.IO).launch {
-                val db = AppDatabase.getInstance(context.applicationContext)
-                val userId = FirebaseAuth.getInstance().currentUser?.uid ?: run {
-                    Log.w("SmsReceiver", "No Firebase user found. Skipping sync.")
-                    return@launch
-                }
+                try {
+                    val db = AppDatabase.getInstance(context.applicationContext)
+                    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: run {
+                        Log.w("SmsReceiver", "No Firebase user found. Skipping sync.")
+                        return@launch
+                    }
 
-                val entity = ScanRecordEntity(
-                    message = text,
-                    matchedKeywords = matches.joinToString(","),
-                    sourceApp = "SMS",
-                    timestamp = System.currentTimeMillis(),
-                    userId = userId
-                )
-
-                db.scanRecordDao().insert(entity)
-
-                // ✅ Centralized Firestore sync
-                val store = UserHistoryStore(context)
-                store.save(
-                    ScanRecord(
+                    val entity = ScanRecordEntity(
                         message = text,
-                        matchedKeywords = matches,
+                        matchedKeywords = matches.joinToString(","),
                         sourceApp = "SMS",
-                        timestamp = entity.timestamp
+                        timestamp = System.currentTimeMillis(),
+                        userId = userId
                     )
-                )
+
+                    db.scanRecordDao().insert(entity)
+
+                    val store = UserHistoryStore(context)
+                    store.save(
+                        ScanRecord(
+                            message = text,
+                            matchedKeywords = matches,
+                            sourceApp = "SMS",
+                            timestamp = entity.timestamp
+                        )
+                    )
+                } catch (e: Exception) {
+                    Log.e("SmsReceiver", "Failed to save scan record", e)
+                }
             }
         }
     }
