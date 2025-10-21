@@ -8,9 +8,11 @@ color md_theme_light_primary
 color md_theme_light_secondary
 drawable bg_profile
 drawable logo_smartguard
+drawable test2
 mipmap ic_launcher
 mipmap ic_launcher_foreground
 mipmap ic_launcher_round
+raw test1
 string app_name
 string gcm_defaultSenderId
 string google_api_key

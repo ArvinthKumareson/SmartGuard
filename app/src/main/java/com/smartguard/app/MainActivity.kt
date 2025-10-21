@@ -122,8 +122,16 @@ fun AppNavigation() {
             composable("tips") { CourseDashboardScreen(navController) }
             composable("quiz") { QuizScreen(navController) }
             composable("scam chat") { ScamChatGameScreen(navController) }
-            composable("scenarios") { ScenarioScreen(navController) }
+            //composable("scenarios") { ScenarioScreen(navController) }
             composable("history") { HistoryScreen(navController) }
+            
+            composable(
+                route = "courseDetail/{courseTitle}",
+                arguments = listOf(navArgument("courseTitle") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val courseTitle = backStackEntry.arguments?.getString("courseTitle") ?: ""
+                CourseDetailScreen(navController, courseTitle)
+            }
 
             composable("admin") {
                 AdminHomeScreen(navController, onLogout = { logout(navController) })

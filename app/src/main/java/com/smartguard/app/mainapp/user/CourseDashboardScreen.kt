@@ -24,193 +24,232 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.smartguard.app.mainapp.resources.CourseCard
+import com.smartguard.app.R
+import com.smartguard.app.mainapp.common.BackgroundWrapper
 import com.smartguard.app.mainapp.resources.SmartGuardBottomBar
 import com.smartguard.app.model.ScamCourse
 
 @Composable
 fun CourseDashboardScreen(nav: NavController) {
+    val viewModel: com.smartguard.app.viewmodel.CourseViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val uiState by viewModel.uiState.collectAsState()
+    
     var selectedCategory by remember { mutableStateOf("All") }
     var selectedCourse by remember { mutableStateOf<ScamCourse?>(null) }
     
     val categories = listOf("All", "Beginner", "Intermediate", "Advanced", "Featured")
     
-    val allCourses = remember {
-        listOf(
-            // Beginner Courses
-            ScamCourse("Spot Fake Delivery SMS", "Learn to identify spoofed courier messages and avoid delivery scams.", "Beginner", 4.9f, true),
-            ScamCourse("Basic Password Security", "Master the fundamentals of creating and managing secure passwords.", "Beginner", 4.8f, false),
-            ScamCourse("Recognize Phishing Emails", "Identify common phishing tactics and suspicious email patterns.", "Beginner", 4.7f, false),
-            ScamCourse("Safe Online Shopping", "Protect yourself while shopping online and avoid fake e-commerce sites.", "Beginner", 4.6f, false),
-            ScamCourse("Social Media Privacy", "Secure your social media accounts and protect your personal information.", "Beginner", 4.5f, false),
-            
-            // Intermediate Courses
-            ScamCourse("OTP Scams Explained", "Understand how scammers trick users into sharing OTPs and verification codes.", "Intermediate", 4.8f, false),
-            ScamCourse("Banking Fraud Prevention", "Learn to protect your financial accounts from sophisticated fraud schemes.", "Intermediate", 4.7f, false),
-            ScamCourse("Two-Factor Authentication", "Implement and manage 2FA across your digital accounts effectively.", "Intermediate", 4.6f, false),
-            ScamCourse("WiFi Security Essentials", "Secure your home and public WiFi connections from cyber threats.", "Intermediate", 4.5f, false),
-            ScamCourse("Mobile App Security", "Identify malicious apps and protect your mobile device from threats.", "Intermediate", 4.4f, false),
-            
-            // Advanced Courses
-            ScamCourse("Phishing via Email", "Detect spoofed sender names, fake domains, and advanced phishing techniques.", "Advanced", 4.7f, false),
-            ScamCourse("Cryptocurrency Scams", "Navigate the crypto space safely and avoid investment fraud schemes.", "Advanced", 4.6f, false),
-            ScamCourse("Social Engineering Defense", "Recognize and counter sophisticated social engineering attacks.", "Advanced", 4.5f, false),
-            ScamCourse("Dark Web Awareness", "Understand dark web threats and protect against data breaches.", "Advanced", 4.4f, false),
-            ScamCourse("Advanced Threat Detection", "Identify sophisticated cyber threats and implement defense strategies.", "Advanced", 4.3f, false),
-            
-            // Featured Courses
-            ScamCourse("AI-Powered Scam Detection", "Learn to identify AI-generated content and deepfake scams.", "Advanced", 4.9f, true),
-            ScamCourse("Elderly Protection Guide", "Comprehensive guide to protect senior citizens from digital scams.", "Beginner", 4.8f, true),
-            ScamCourse("Business Email Compromise", "Protect your business from BEC attacks and CEO fraud schemes.", "Advanced", 4.7f, true)
-        )
+    val allCourses = viewModel.toScamCourses()
+    
+    // Create a list that includes completion status - this will update when progress changes
+    data class CourseWithStatus(val course: ScamCourse, val isCompleted: Boolean)
+    
+    val coursesWithStatus = remember(allCourses, uiState.progress) {
+        allCourses.map { course ->
+            CourseWithStatus(
+                course = course,
+                isCompleted = viewModel.isCourseCompleted(course.title)
+            )
+        }
     }
     
-    val filteredCourses = remember(selectedCategory) {
-        if (selectedCategory == "All") allCourses
-        else allCourses.filter { it.level == selectedCategory }
+    val filteredCourses = remember(selectedCategory, coursesWithStatus) {
+        if (selectedCategory == "All") coursesWithStatus
+        else if (selectedCategory == "Featured") coursesWithStatus.filter { it.course.isNew }
+        else coursesWithStatus.filter { it.course.level == selectedCategory }
+    }
+    
+    // Get progress stats - recalculate when uiState changes
+    val (completed, inProgress, available) = remember(uiState.progress, uiState.courses) {
+        viewModel.getProgressStats()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("SmartGuard Training", color = Color.White) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E)),
-                actions = {
-                    IconButton(onClick = { /* Search functionality */ }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
+    BackgroundWrapper(imageResId = R.drawable.bg_profile) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("SmartGuard Training", color = Color.White) },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E)),
+                    actions = {
+                        IconButton(onClick = { /* Search functionality */ }) {
+                            Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
+                        }
                     }
-                }
-            )
-        },
-        bottomBar = { SmartGuardBottomBar(nav, currentRoute = "home") }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Welcome Section
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D))
+                )
+            },
+            bottomBar = { SmartGuardBottomBar(nav, currentRoute = "tips") }
+        ) { padding ->
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                CircularProgressIndicator(color = Color(0xFF4CAF50))
+            }
+        } else if (uiState.error != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "Welcome to SmartGuard Training!",
-                        style = MaterialTheme.typography.titleLarge,
+                        "Error loading courses",
                         color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Master cybersecurity skills and protect yourself from digital threats",
+                        uiState.error ?: "",
                         color = Color.LightGray,
                         fontSize = 14.sp
                     )
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = { viewModel.loadCourses() }) {
+                        Text("Retry")
+                    }
                 }
             }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                // Welcome Section
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                "Welcome to SmartGuard Training!",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "Master cybersecurity skills and protect yourself from digital threats",
+                                color = Color.LightGray,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
             
-            Spacer(Modifier.height(24.dp))
+            // Progress Section - MOVED TO TOP
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text("Your Progress", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                        Spacer(Modifier.height(12.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            ProgressStat("Completed", completed.toString(), Icons.Default.CheckCircle, Color(0xFF4CAF50))
+                            ProgressStat("In Progress", inProgress.toString(), Icons.Default.Schedule, Color(0xFFFF9800))
+                            ProgressStat("Available", available.toString(), Icons.Default.LibraryBooks, Color(0xFF2196F3))
+                        }
+                    }
+                }
+            }
             
             // Category Filter
-            Text("Categories", style = MaterialTheme.typography.titleMedium, color = Color.White)
-            Spacer(Modifier.height(8.dp))
-            
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(categories) { category ->
-                    FilterChip(
-                        onClick = { selectedCategory = category },
-                        label = { Text(category, color = if (selectedCategory == category) Color.Black else Color.White) },
-                        selected = selectedCategory == category,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFF4CAF50),
-                            containerColor = Color(0xFF2D2D2D)
-                        )
-                    )
-                }
+            item {
+                Spacer(Modifier.height(8.dp))
+                Text("Categories", style = MaterialTheme.typography.titleMedium, color = Color.White)
             }
             
-            Spacer(Modifier.height(24.dp))
+            item {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(categories) { category ->
+                        FilterChip(
+                            onClick = { selectedCategory = category },
+                            label = { Text(category, color = if (selectedCategory == category) Color.Black else Color.White) },
+                            selected = selectedCategory == category,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFF4CAF50),
+                                containerColor = Color(0xFF2D2D2D)
+                            )
+                        )
+                    }
+                }
+            }
             
             // Courses Section
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Courses (${filteredCourses.size})", 
-                    style = MaterialTheme.typography.titleMedium, 
-                    color = Color.White
-                )
-                TextButton(onClick = { /* Sort functionality */ }) {
-                    Text("Sort", color = Color(0xFF4CAF50))
-                }
-            }
-            Spacer(Modifier.height(8.dp))
-
-            // Course Grid
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(filteredCourses) { course ->
-                    EnhancedCourseCard(course) { selectedCourse = course }
-                }
-            }
-
-            Spacer(Modifier.height(24.dp))
-            
-            // Progress Section
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D))
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text("Your Progress", style = MaterialTheme.typography.titleMedium, color = Color.White)
-                    Spacer(Modifier.height(12.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        ProgressStat("Completed", "3", Icons.Default.CheckCircle, Color(0xFF4CAF50))
-                        ProgressStat("In Progress", "2", Icons.Default.Schedule, Color(0xFFFF9800))
-                        ProgressStat("Available", "12", Icons.Default.LibraryBooks, Color(0xFF2196F3))
-                    }
-                }
-            }
-            
-            Spacer(Modifier.height(24.dp))
-            
-            // Quick Tips Section
-            Text("Quick Tips", style = MaterialTheme.typography.titleMedium, color = Color.White)
-            Spacer(Modifier.height(8.dp))
-            
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D))
-            ) {
+            item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .clickable { nav.navigate("tips") },
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Lightbulb, contentDescription = null, tint = Color(0xFFFFD700))
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text("Daily Security Tips", color = Color.White, fontWeight = FontWeight.Medium)
-                        Text("Get daily tips to stay secure", color = Color.LightGray, fontSize = 12.sp)
+                    Text(
+                        "Courses (${filteredCourses.size})", 
+                        style = MaterialTheme.typography.titleMedium, 
+                        color = Color.White
+                    )
+                    TextButton(onClick = { /* Sort functionality */ }) {
+                        Text("Sort", color = Color(0xFF4CAF50))
                     }
-                    Spacer(Modifier.weight(1f))
-                    Icon(Icons.Default.ArrowForward, contentDescription = null, tint = Color.Gray)
+                }
+            }
+
+            // Course Grid
+            items(filteredCourses, key = { it.course.title }) { courseWithStatus ->
+                EnhancedCourseCard(
+                    course = courseWithStatus.course,
+                    isCompleted = courseWithStatus.isCompleted,
+                    onClick = { selectedCourse = courseWithStatus.course }
+                )
+            }
+            
+            // Quick Tips Section
+            item {
+                Text("Quick Tips", style = MaterialTheme.typography.titleMedium, color = Color.White)
+            }
+            
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .clickable { nav.navigate("tips") },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Lightbulb, contentDescription = null, tint = Color(0xFFFFD700))
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text("Daily Security Tips", color = Color.White, fontWeight = FontWeight.Medium)
+                            Text("Get daily tips to stay secure", color = Color.LightGray, fontSize = 12.sp)
+                        }
+                        Spacer(Modifier.weight(1f))
+                        Icon(Icons.Default.ArrowForward, contentDescription = null, tint = Color.Gray)
+                    }
                 }
             }
         }
+        }
+    }
     }
 
     selectedCourse?.let { course ->
@@ -261,12 +300,14 @@ fun CourseDashboardScreen(nav: NavController) {
 }
 
 @Composable
-fun EnhancedCourseCard(course: ScamCourse, onClick: () -> Unit) {
+fun EnhancedCourseCard(course: ScamCourse, isCompleted: Boolean, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D))
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCompleted) Color(0xFF1B3A1B) else Color(0xFF2D2D2D)
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -278,6 +319,16 @@ fun EnhancedCourseCard(course: ScamCourse, onClick: () -> Unit) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (isCompleted) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = "Completed",
+                                tint = Color(0xFF4CAF50),
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .padding(end = 4.dp)
+                            )
+                        }
                         if (course.isNew) {
                             Card(
                                 modifier = Modifier.padding(end = 8.dp),
@@ -340,7 +391,10 @@ fun EnhancedCourseCard(course: ScamCourse, onClick: () -> Unit) {
                 }
                 
                 TextButton(onClick = onClick) {
-                    Text("Start", color = Color(0xFF4CAF50))
+                    Text(
+                        if (isCompleted) "Review" else "Start",
+                        color = Color(0xFF4CAF50)
+                    )
                 }
             }
         }
