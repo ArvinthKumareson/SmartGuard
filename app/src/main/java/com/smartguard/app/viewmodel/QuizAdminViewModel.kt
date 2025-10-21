@@ -23,7 +23,8 @@ class QuizAdminViewModel : ViewModel() {
                     question = doc.getString("question") ?: "",
                     choices = doc.get("choices") as? List<String> ?: emptyList(),
                     answer = (doc.getLong("answer") ?: 0).toInt(),
-                    videoId = doc.getString("videoId")
+                    videoId = doc.getString("videoId"),
+                    videoUri = doc.getString("videoUri")
                 )
                 doc.id to q
             }
@@ -47,6 +48,7 @@ class QuizAdminViewModel : ViewModel() {
         "question" to question,
         "choices" to choices,
         "answer" to answer,
-        "videoId" to videoId
+        "videoId" to videoId,
+        "videoUri" to videoUri
     )
 }

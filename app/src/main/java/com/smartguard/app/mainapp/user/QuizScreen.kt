@@ -2,9 +2,10 @@
 
 package com.smartguard.app.mainapp.quiz
 
-import android.webkit.WebChromeClient
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.media.MediaPlayer
+import android.net.Uri
+import android.widget.MediaController
+import android.widget.VideoView
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assignment
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,14 +29,26 @@ import com.smartguard.app.viewmodel.QuizUserViewModel
 import java.net.URLEncoder
 
 @Composable
-fun YouTubePlayer(videoId: String) {
+fun LocalVideoPlayer(videoUri: String) {
+    val context = LocalContext.current
+    
     AndroidView(
-        factory = { context ->
-            WebView(context).apply {
-                settings.javaScriptEnabled = true
-                webViewClient = WebViewClient()
-                webChromeClient = WebChromeClient()
-                loadUrl("https://www.youtube.com/$videoId")
+        factory = { ctx ->
+            VideoView(ctx).apply {
+                setVideoURI(Uri.parse(videoUri))
+                val mediaController = MediaController(ctx)
+                mediaController.setAnchorView(this)
+                setMediaController(mediaController)
+                
+                setOnPreparedListener { mp ->
+                    mp.isLooping = false
+                    mp.setVolume(1f, 1f)
+                }
+                
+                setOnErrorListener { _, what, extra ->
+                    android.util.Log.e("VideoPlayer", "Error playing video: what=$what, extra=$extra")
+                    true
+                }
             }
         },
         modifier = Modifier
@@ -96,8 +110,9 @@ fun QuizScreen(nav: NavController, vm: QuizUserViewModel = viewModel()) {
                         Text(q.question, style = MaterialTheme.typography.bodyLarge, color = Color.White)
                         Spacer(Modifier.height(16.dp))
 
-                        q.videoId?.let {
-                            YouTubePlayer(it)
+                        // Display local video if available
+                        q.videoUri?.let {
+                            LocalVideoPlayer(it)
                             Spacer(Modifier.height(16.dp))
                         }
 

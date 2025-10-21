@@ -4,5 +4,6 @@ data class QuizQ(
     val question: String = "",
     val choices: List<String> = emptyList(),
     val answer: Int = 0,
-    val videoId: String? = null
+    val videoId: String? = null,  // Deprecated: kept for backward compatibility
+    val videoUri: String? = null   // New: local video URI
 )
