@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#000000</color>
+    <color name="md_theme_light_background">#FFFBFE</color>
+    <color name="md_theme_light_onBackground">#1C1B1F</color>
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primary">#6750A4</color>
+    <color name="md_theme_light_secondary">#625B71</color>
+    <string name="app_name">SmartGuard</string>
+    <string name="gcm_defaultSenderId" translatable="false">895939354335</string>
+    <string name="google_api_key" translatable="false">AIzaSyAAgMV2RLifbyIAdlDfxaURqx04-1HOmmQ</string>
+    <string name="google_app_id" translatable="false">1:895939354335:android:adf1ae05791c60d862936a</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyAAgMV2RLifbyIAdlDfxaURqx04-1HOmmQ</string>
+    <string name="google_storage_bucket" translatable="false">smartguard-1b066.firebasestorage.app</string>
+    <string name="project_id" translatable="false">smartguard-1b066</string>
+    <string name="service_name_notification_listener">SmartGuard Notification Service</string>
+    <style name="Theme.SmartGuard.Splash" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/logo_smartguard</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/logo_smartguard</item>
+        <item name="android:windowSplashScreenBackground">#000000</item> 
+    </style>
+</resources>
