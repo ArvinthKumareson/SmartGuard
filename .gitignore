@@ -19,6 +19,9 @@ build/
 # Gradle files
 .gradle/
 
+# BUT keep gradle wrapper jar (needed for builds)
+!gradle-wrapper.jar
+
 # Local configuration file (sdk path, etc)
 local.properties
 
@@ -26,18 +29,24 @@ local.properties
 *.iml
 .idea/workspace.xml
 .idea/tasks.xml
-.idea/gradle.xml
 .idea/assetWizard.xml
 .idea/dictionaries
 .idea/libraries
 .idea/jarRepositories.xml
-.idea/caches
+.idea/caches/
 .idea/modules.xml
 .idea/navEditor.xml
 .idea/*.iml
-.idea/misc.xml
 .idea/vcs.xml
 .idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/migrations.xml
+.idea/runConfigurations.xml
+
+# Keep these files for proper gradle sync:
+# - .idea/compiler.xml
+# - .idea/gradle.xml
+# - .idea/misc.xml
 
 # Keystore files
 *.jks
