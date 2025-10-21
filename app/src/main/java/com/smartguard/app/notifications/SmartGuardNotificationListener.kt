@@ -45,7 +45,7 @@ class SmartGuardNotificationListener : NotificationListenerService() {
 
         Log.d("SmartGuardNotif", "Notification from ${sbn.packageName}")
         Log.d("SmartGuardNotif", "Extracted text: $fullText")
-
+// just to commit
 
 
         if (fullText.isBlank()) return
