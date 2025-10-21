@@ -46,7 +46,7 @@ class SmartGuardNotificationListener : NotificationListenerService() {
         Log.d("SmartGuardNotif", "Notification from ${sbn.packageName}")
         Log.d("SmartGuardNotif", "Extracted text: $fullText")
 // location change
-
+//test
 
         if (fullText.isBlank()) return
 
