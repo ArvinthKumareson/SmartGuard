@@ -10,31 +10,31 @@
 10
 11    <!-- Features -->
 12    <uses-feature
-12-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:6:5-88
+12-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:6:5-88
 13        android:name="android.hardware.telephony"
-13-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:6:19-60
+13-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:6:19-60
 14        android:required="false" />
-14-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:6:61-85
+14-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:6:61-85
 15
 16    <!-- Permissions -->
 17    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-17-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:9:5-105
-17-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:9:22-67
+17-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:9:5-105
+17-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:9:22-67
 18    <uses-permission android:name="android.permission.READ_SMS" />
-18-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:10:5-102
-18-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:10:22-64
+18-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:10:5-102
+18-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:10:22-64
 19    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-19-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:11:5-77
-19-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:11:22-74
+19-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:11:5-77
+19-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:11:22-74
 20    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
-20-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:12:5-129
-20-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:12:22-90
+20-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:12:5-129
+20-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:12:22-90
 21    <uses-permission android:name="android.permission.VIBRATE" />
-21-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:13:5-66
-21-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:13:22-63
+21-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:13:5-66
+21-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:13:22-63
 22    <uses-permission android:name="android.permission.INTERNET" />
-22-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:14:5-67
-22-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:14:22-64
+22-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:14:5-67
+22-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:14:22-64
 23    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 23-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\ugots\.gradle\caches\8.13\transforms\974240ec7b7149b6948b0ebfc97cf28c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:26:5-79
 23-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\ugots\.gradle\caches\8.13\transforms\974240ec7b7149b6948b0ebfc97cf28c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:26:22-76
@@ -66,78 +66,78 @@
 34-->[androidx.core:core:1.13.1] C:\Users\ugots\.gradle\caches\8.13\transforms\ad228f6b8bd5519d7bd46c95abdc32d8\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
 35
 36    <application
-36-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:16:5-55:19
+36-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:16:5-55:19
 37        android:allowBackup="true"
-37-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:17:9-35
+37-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:17:9-35
 38        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 38-->[androidx.core:core:1.13.1] C:\Users\ugots\.gradle\caches\8.13\transforms\ad228f6b8bd5519d7bd46c95abdc32d8\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
 39        android:dataExtractionRules="@xml/data_extraction_rules"
-39-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:18:9-65
+39-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:18:9-65
 40        android:debuggable="true"
 41        android:extractNativeLibs="false"
 42        android:fullBackupContent="@xml/backup_rules"
-42-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:19:9-54
+42-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:19:9-54
 43        android:icon="@mipmap/ic_launcher"
-43-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:20:9-43
+43-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:20:9-43
 44        android:label="SmartGuard"
-44-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:21:9-35
+44-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:21:9-35
 45        android:roundIcon="@mipmap/ic_launcher_round"
-45-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:22:9-54
+45-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:22:9-54
 46        android:supportsRtl="true"
-46-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:23:9-35
+46-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:23:9-35
 47        android:testOnly="true"
 48        android:usesCleartextTraffic="true" >
-48-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:24:9-44
+48-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:24:9-44
 49        <activity
-49-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:26:9-34:20
+49-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:26:9-34:20
 50            android:name="com.smartguard.app.MainActivity"
-50-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:27:13-41
+50-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:27:13-41
 51            android:exported="true"
-51-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:28:13-36
+51-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:28:13-36
 52            android:theme="@style/Theme.SmartGuard.Splash" >
-52-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:29:13-59
+52-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:29:13-59
 53            <intent-filter>
-53-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:30:13-33:29
+53-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:30:13-33:29
 54                <action android:name="android.intent.action.MAIN" />
-54-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:31:17-69
-54-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:31:25-66
+54-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:31:17-69
+54-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:31:25-66
 55
 56                <category android:name="android.intent.category.LAUNCHER" />
-56-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:32:17-77
-56-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:32:27-74
+56-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:32:17-77
+56-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:32:27-74
 57            </intent-filter>
 58        </activity>
 59
 60        <service
-60-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:36:9-43:19
+60-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:36:9-43:19
 61            android:name="com.smartguard.app.notifications.SmartGuardNotificationListener"
-61-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:37:13-73
+61-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:37:13-73
 62            android:exported="true"
-62-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:39:13-36
+62-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:39:13-36
 63            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" >
-63-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:38:13-87
+63-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:38:13-87
 64            <intent-filter>
-64-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:40:13-42:29
+64-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:40:13-42:29
 65                <action android:name="android.service.notification.NotificationListenerService" />
-65-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:41:17-99
-65-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:41:25-96
+65-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:41:17-99
+65-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:41:25-96
 66            </intent-filter>
 67        </service>
 68
 69        <receiver
-69-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:45:9-52:20
+69-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:45:9-52:20
 70            android:name="com.smartguard.app.sms.SmsReceiver"
-70-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:46:13-44
+70-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:46:13-44
 71            android:exported="true"
-71-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:47:13-36
+71-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:47:13-36
 72            android:permission="android.permission.BROADCAST_SMS" >
-72-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:48:13-66
+72-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:48:13-66
 73            <intent-filter android:priority="999" >
-73-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:49:13-51:29
-73-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:49:28-50
+73-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:49:13-51:29
+73-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:49:28-50
 74                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-74-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:50:17-82
-74-->D:\Downloads\SmartGuard-AndroidStudio-updated\app\src\main\AndroidManifest.xml:50:25-79
+74-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:50:17-82
+74-->C:\Users\ugots\AndroidStudioFypProject\SmartGuard-AndroidStudio\app\src\main\AndroidManifest.xml:50:25-79
 75            </intent-filter>
 76        </receiver>
 77
