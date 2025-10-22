@@ -483,6 +483,16 @@ fun TipDetailPage(
                                 val mediaController = MediaController(context)
                                 mediaController.setAnchorView(this)
                                 setMediaController(mediaController)
+                                
+                                setOnPreparedListener { mp ->
+                                    mp.isLooping = false
+                                    start() // Auto-play the video
+                                }
+                                
+                                setOnErrorListener { _, what, extra ->
+                                    android.util.Log.e("VideoPlayer", "Error: what=$what, extra=$extra")
+                                    true
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxSize()

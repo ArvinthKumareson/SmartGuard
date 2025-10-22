@@ -62,7 +62,7 @@ object CourseProgressManager {
     fun getProgressStats(allCourses: List<com.smartguard.app.model.ScamCourse>): ProgressStats {
         val totalCourses = allCourses.size
         val completed = completedCourses.count { it.value }
-        val inProgress = 0 // We can enhance this later to track partially completed courses
+        val inProgress = 0
         val available = totalCourses - completed
         
         return ProgressStats(

@@ -18,29 +18,43 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.smartguard.app.viewmodel.QuizAdminViewModel
 import com.smartguard.app.model.QuizQ
+import com.smartguard.app.util.VideoUploader
+import kotlinx.coroutines.launch
 
 @Composable
 fun AdminQuizManagerScreen(nav: NavController, vm: QuizAdminViewModel = viewModel()) {
     val context = LocalContext.current
     val questions by vm.questions.collectAsState()
+    val scope = rememberCoroutineScope()
     
     var newQuestion by remember { mutableStateOf("") }
     var newChoices by remember { mutableStateOf("") }
     var newAnswer by remember { mutableStateOf("0") }
     var selectedVideoUri by remember { mutableStateOf<Uri?>(null) }
     var selectedVideoName by remember { mutableStateOf("") }
+    var isUploading by remember { mutableStateOf(false) }
+    var uploadError by remember { mutableStateOf<String?>(null) }
+    var useCloudUpload by remember { mutableStateOf(false) } // Toggle between bundled and cloud
+    var bundledVideoName by remember { mutableStateOf("") } // For bundled videos
 
     // Video picker launcher
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            // Take persistent permission to access the file
-            context.contentResolver.takePersistableUriPermission(
-                it,
-                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
+            try {
+                // Try to take persistent permission (optional - not all content providers support this)
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: SecurityException) {
+                // Ignore - some content providers don't support persistent permissions
+                android.util.Log.d("AdminQuiz", "Persistent permission not available: ${e.message}")
+            }
+            
             selectedVideoUri = it
+            
             // Get the file name from URI
             val cursor = context.contentResolver.query(it, null, null, null, null)
             cursor?.use { c ->
@@ -108,72 +122,149 @@ fun AdminQuizManagerScreen(nav: NavController, vm: QuizAdminViewModel = viewMode
                 )
                 Spacer(Modifier.height(8.dp))
                 
-                if (selectedVideoUri != null) {
-                    // Show selected video
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                "Selected video:",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                selectedVideoName.ifEmpty { "Video selected" },
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                // Toggle between bundled and cloud upload
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = !useCloudUpload,
+                        onClick = { useCloudUpload = false },
+                        label = { Text("Bundled") }
+                    )
+                    FilterChip(
+                        selected = useCloudUpload,
+                        onClick = { useCloudUpload = true },
+                        label = { Text("Upload") }
+                    )
+                }
+                
+                Spacer(Modifier.height(8.dp))
+                
+                if (useCloudUpload) {
+                    // Cloud upload option
+                    if (selectedVideoUri != null) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "Selected video:",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    selectedVideoName.ifEmpty { "Video selected" },
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                            IconButton(onClick = {
+                                selectedVideoUri = null
+                                selectedVideoName = ""
+                            }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Remove video")
+                            }
                         }
-                        IconButton(onClick = {
-                            selectedVideoUri = null
-                            selectedVideoName = ""
-                        }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Remove video")
+                    } else {
+                        Button(
+                            onClick = { videoPickerLauncher.launch("video/*") },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.VideoLibrary, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Select Video from Device")
                         }
                     }
                 } else {
-                    // Show picker button
-                    Button(
-                        onClick = { videoPickerLauncher.launch("video/*") },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.VideoLibrary, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Select Video from Device")
-                    }
+                    // Bundled video option
+                    OutlinedTextField(
+                        value = bundledVideoName,
+                        onValueChange = { bundledVideoName = it },
+                        label = { Text("Video filename") },
+                        placeholder = { Text("e.g., phishing_demo (without .mp4)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        supportingText = { 
+                            Text("Place video in res/raw/ folder", 
+                                style = MaterialTheme.typography.bodySmall) 
+                        }
+                    )
                 }
             }
         }
         
         Spacer(Modifier.height(16.dp))
 
+        // Upload error message
+        if (uploadError != null) {
+            Text(
+                text = uploadError!!,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+
         // Add question button
         Button(
             onClick = {
-                val choices = newChoices.split(",").map { it.trim() }
-                val answerIndex = newAnswer.toIntOrNull() ?: 0
-                vm.addQuestion(
-                    QuizQ(
-                        question = newQuestion,
-                        choices = choices,
-                        answer = answerIndex,
-                        videoId = null,  // No longer using YouTube video IDs
-                        videoUri = selectedVideoUri?.toString()
-                    )
-                )
-                // Reset form
-                newQuestion = ""
-                newChoices = ""
-                newAnswer = "0"
-                selectedVideoUri = null
-                selectedVideoName = ""
+                scope.launch {
+                    isUploading = true
+                    uploadError = null
+                    
+                    try {
+                        // Handle video based on selection
+                        val videoUrl = if (useCloudUpload && selectedVideoUri != null) {
+                            // Upload to Firebase Storage
+                            VideoUploader.uploadVideo(context, selectedVideoUri!!)
+                        } else if (!useCloudUpload && bundledVideoName.isNotBlank()) {
+                            // Use bundled video
+                            "android.resource://${context.packageName}/raw/${bundledVideoName.trim()}"
+                        } else {
+                            null
+                        }
+                        
+                        // Add question with cloud video URL
+                        val choices = newChoices.split(",").map { it.trim() }
+                        val answerIndex = newAnswer.toIntOrNull() ?: 0
+                        vm.addQuestion(
+                            QuizQ(
+                                question = newQuestion,
+                                choices = choices,
+                                answer = answerIndex,
+                                videoId = null,
+                                videoUri = videoUrl  // Cloud URL instead of local URI
+                            )
+                        )
+                        
+                        // Reset form
+                        newQuestion = ""
+                        newChoices = ""
+                        newAnswer = "0"
+                        selectedVideoUri = null
+                        selectedVideoName = ""
+                        bundledVideoName = ""
+                    } catch (e: Exception) {
+                        uploadError = "Error: ${e.message}"
+                    } finally {
+                        isUploading = false
+                    }
+                }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = newQuestion.isNotBlank() && newChoices.isNotBlank()
+            enabled = newQuestion.isNotBlank() && newChoices.isNotBlank() && !isUploading
         ) {
-            Text("Add Question")
+            if (isUploading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Uploading...")
+            } else {
+                Text("Add Question")
+            }
         }
 
         Spacer(Modifier.height(24.dp))

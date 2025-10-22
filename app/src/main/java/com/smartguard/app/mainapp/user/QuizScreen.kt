@@ -42,7 +42,7 @@ fun LocalVideoPlayer(videoUri: String) {
                 
                 setOnPreparedListener { mp ->
                     mp.isLooping = false
-                    mp.setVolume(1f, 1f)
+                    start() // Auto-play the video
                 }
                 
                 setOnErrorListener { _, what, extra ->

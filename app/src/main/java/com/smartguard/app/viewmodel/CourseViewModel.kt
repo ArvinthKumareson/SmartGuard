@@ -139,12 +139,13 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
                         MediaResourceHelper.getImageResourceId(context, it)?.toIntOrNull()
                     },
                     videoUri = fbTip.videoUrl?.let {
-                        // If it's already a full URI, use it
-                        if (it.startsWith("android.resource://")) {
-                            it
-                        } else {
-                            // Otherwise treat as resource name and look it up
-                            MediaResourceHelper.getVideoUriByName(context, it)
+                        when {
+                            // Cloud URL from Firebase Storage
+                            it.startsWith("http://") || it.startsWith("https://") -> it
+                            // Local resource URI
+                            it.startsWith("android.resource://") -> it
+                            // Resource name - look it up
+                            else -> MediaResourceHelper.getVideoUriByName(context, it)
                         }
                     }
                 )

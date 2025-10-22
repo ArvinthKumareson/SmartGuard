@@ -31,22 +31,38 @@ class SmartGuardNotificationListener : NotificationListenerService() {
             Log.d("SmartGuardNotif", "Extra[$key] = ${extras.get(key)}")
         }
 
+        val textParts = mutableListOf<String>()
 
-
-        // WhatsApp
+        // Extract standard notification text
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
         val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
 
-        val fullText = listOfNotNull(title, text, bigText, subText)
-            .joinToString(" ")
-            .trim()
+        textParts.addAll(listOfNotNull(title, text, bigText, subText))
+
+        // Extract WhatsApp MessagingStyle messages
+        val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
+        if (messages != null) {
+            for (message in messages) {
+                val bundle = message as? android.os.Bundle
+                val messageText = bundle?.getCharSequence("text")?.toString()
+                if (messageText != null) {
+                    textParts.add(messageText)
+                }
+            }
+        }
+
+        // Extract conversation title (for group chats)
+        val conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString()
+        if (conversationTitle != null) {
+            textParts.add(conversationTitle)
+        }
+
+        val fullText = textParts.joinToString(" ").trim()
 
         Log.d("SmartGuardNotif", "Notification from ${sbn.packageName}")
         Log.d("SmartGuardNotif", "Extracted text: $fullText")
-// location change
-//test
 
         if (fullText.isBlank()) return
 

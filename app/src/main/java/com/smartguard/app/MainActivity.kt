@@ -30,6 +30,7 @@ import com.google.gson.reflect.TypeToken
 import com.smartguard.app.data.EncryptedKeywords
 import com.smartguard.app.model.QuizResult
 import com.smartguard.app.mainapp.*
+import com.smartguard.app.mainapp.admin.AdminFeedbackScreen
 import com.smartguard.app.mainapp.admin.AdminHomeScreen
 import com.smartguard.app.mainapp.admin.AdminKeywordManagerScreen
 import com.smartguard.app.mainapp.admin.AdminQuizManagerScreen
@@ -122,7 +123,9 @@ fun AppNavigation() {
             composable("tips") { CourseDashboardScreen(navController) }
             composable("quiz") { QuizScreen(navController) }
             composable("scam chat") { ScamChatGameScreen(navController) }
-            //composable("scenarios") { ScenarioScreen(navController) }
+            composable("website_checker") { WebsiteCheckerScreen(navController) }
+            composable("scan_history") { ScanHistoryScreen(navController) }
+            composable("user_feedback") { UserFeedbackScreen(navController) }
             composable("history") { HistoryScreen(navController) }
             
             composable(
@@ -141,6 +144,9 @@ fun AppNavigation() {
             }
             composable("admin_quiz_manager") {
                 AdminQuizManagerScreen(navController)
+            }
+            composable("admin_feedback") {
+                AdminFeedbackScreen(navController)
             }
 
             composable(
