@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
+//UNUSED, DEPRECATED
 object CourseProgressManager {
     private const val PREFS_NAME = "course_progress"
     private const val COMPLETED_COURSES_KEY = "completed_courses"

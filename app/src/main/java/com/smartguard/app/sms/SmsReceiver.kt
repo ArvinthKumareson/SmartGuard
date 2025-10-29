@@ -42,11 +42,10 @@ class SmsReceiver : BroadcastReceiver() {
         val text = messages.joinToString(" ") { it.messageBody ?: "" }.trim()
         if (text.isBlank()) return
 
-        val keywords = EncryptedKeywords.getKeywords(context)
-        val engine = DetectionEngine(keywords)
-        val matches = engine.scan(text)
+        val engine = DetectionEngine(context)
+        val matchedKeywords = engine.scanWithExplanations(text)
 
-        if (matches.isNotEmpty()) {
+        if (matchedKeywords.isNotEmpty()) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val db = AppDatabase.getInstance(context.applicationContext)
@@ -55,9 +54,14 @@ class SmsReceiver : BroadcastReceiver() {
                         return@launch
                     }
 
+                    val keywordsList = matchedKeywords.map { it.keyword }
+                    val explanationsMap = matchedKeywords.associate { it.keyword to it.explanation }
+                    val explanationsJson = com.google.gson.Gson().toJson(explanationsMap)
+
                     val entity = ScanRecordEntity(
                         message = text,
-                        matchedKeywords = matches.joinToString(","),
+                        matchedKeywords = keywordsList.joinToString(","),
+                        keywordExplanations = explanationsJson,
                         sourceApp = "SMS",
                         timestamp = System.currentTimeMillis(),
                         userId = userId
@@ -69,7 +73,7 @@ class SmsReceiver : BroadcastReceiver() {
                     store.save(
                         ScanRecord(
                             message = text,
-                            matchedKeywords = matches,
+                            matchedKeywords = keywordsList,
                             sourceApp = "SMS",
                             timestamp = entity.timestamp
                         )

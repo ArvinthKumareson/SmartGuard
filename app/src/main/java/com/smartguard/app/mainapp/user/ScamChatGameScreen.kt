@@ -6,17 +6,28 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.smartguard.app.R
+import com.smartguard.app.mainapp.common.BackgroundWrapper
 import com.smartguard.app.mainapp.resources.SmartGuardBottomBar
+import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.delay
 
 data class ScamScenario(
     val id: String,
     val title: String,
+    val description: String,
     val steps: List<ScamStep>
 )
 
@@ -24,441 +35,449 @@ data class ScamStep(
     val messages: List<String>,
     val choices: List<String>,
     val correctIndex: Int,
-    val pushMessages: List<String> = emptyList(),
+    val explanation: String = "",
     val nextStepIfCorrect: Int? = null,
     val nextStepIfWrong: Int? = null,
+    val endsGameIfCorrect: Boolean = false,
     val endsGameIfWrong: Boolean = false,
     val isCrucialMistake: Boolean = false
 )
 
 val allScenarios = listOf(
+    // SCENARIO 1: Bank Fraud Call - Realistic Maybank scam
     ScamScenario(
-        id = "credit_card",
-        title = "Credit Card Fraud Call",
+        id = "bank_fraud",
+        title = "Bank Fraud Alert",
+        description = "Scammer pretends to be from Maybank",
         steps = listOf(
             ScamStep(
-                messages = listOf("Hello, this is Sarah from Maybank Fraud Department.", "We detected suspicious activity on your account.", "There was a charge of RM3,200 at a store in Johor Bahru this morning.", "Did you make this transaction?"),
-                choices = listOf("No, I didn't make that charge", "Yes, that was me", "I'm not sure, let me check my account"),
-                correctIndex = 0,
-                pushMessages = listOf("I understand your concern.", "This is exactly why we're calling you.", "We need to act quickly to protect your account.", "Can you confirm your card number so we can verify your identity?"),
-                nextStepIfCorrect = 1,
-                nextStepIfWrong = 2
+                messages = listOf(
+                    "Good afternoon. This is Ahmad from Maybank Fraud Prevention Unit.",
+                    "We're calling because we detected a suspicious transaction of RM4,850 to an online gambling site.",
+                    "This happened 15 minutes ago. Did you authorize this payment?"
+                ),
+                choices = listOf(
+                    "No! That wasn't me! Please block it!",
+                    "Let me check my app first",
+                    "Can you give me a reference number? I'll call the bank directly"
+                ),
+                correctIndex = 2,
+                explanation = "Real banks have reference numbers for all calls. Always verify by calling the official number yourself.",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = 1,
+                endsGameIfCorrect = true
             ),
             ScamStep(
-                messages = listOf("I can see your card ends in 4321.", "Can you confirm the full number for security purposes?"),
-                choices = listOf("Sure, it's 4321-5678-9012-3456", "I'll call Maybank directly to verify this", "I'm not comfortable sharing my card number"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand you want to be careful.", "But time is critical here.", "Every minute we delay, the fraudsters could make more charges.", "We're trying to help you, not harm you."),
-                nextStepIfCorrect = 2,
-                nextStepIfWrong = 3
+                messages = listOf(
+                    "I understand your concern, sir. Time is critical here.",
+                    "The transaction is still pending - we have a 30-minute window to stop it.",
+                    "I just need to verify your identity. What are the last 6 digits of your card?"
+                ),
+                choices = listOf(
+                    "It's 456789",
+                    "Why do you need that? You called me, you should already know",
+                    "I'm hanging up and calling 1300-88-6688 myself"
+                ),
+                correctIndex = 2,
+                explanation = "Banks NEVER ask for card details during outbound calls. They already have your info!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = 2,
+                endsGameIfCorrect = true,
+                isCrucialMistake = true
             ),
             ScamStep(
-                messages = listOf("I appreciate your caution, but we need to move fast.", "To block this fraud, we need your CVV number.", "This is the only way to stop the unauthorized charges."),
-                choices = listOf("It's 123", "I won't share my CVV with anyone", "Let me call the bank's official number first"),
+                messages = listOf(
+                    "Sir, I can assure you this is legitimate.",
+                    "Look, I'll send you a verification code to your phone right now as proof.",
+                    "Just read back the 6-digit code when you receive it, okay?"
+                ),
+                choices = listOf(
+                    "Okay, the code is 847293",
+                    "No, I'll verify this myself. Goodbye.",
+                    "Send it to my email instead"
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But this is the only way to protect your account.", "We're trying to help you, not harm you.", "Every minute we delay, your money is at risk."),
-                nextStepIfCorrect = 3,
-                nextStepIfWrong = 4
-            ),
-            ScamStep(
-                messages = listOf("We've sent a verification code to your phone.", "Please read it back to me so we can confirm your identity."),
-                choices = listOf("Here's the code: 847392", "I won't share OTP codes with anyone", "Let me call the bank to verify this"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your caution.", "But this is the only way to verify your identity.", "We're trying to protect your account.", "Don't let the fraudsters win."),
-                nextStepIfCorrect = 4,
-                nextStepIfWrong = 5
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your identity with your IC number.", "This is standard procedure for fraud prevention."),
-                choices = listOf("Here's my IC: 123456-78-9012", "I won't share my IC number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to protect your account.", "This is the only way to stop the fraud."),
-                nextStepIfCorrect = 5,
-                nextStepIfWrong = 6
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your address to confirm your identity.", "Please provide your full address."),
-                choices = listOf("Here's my address: 123 Main Street", "I won't share my address", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to protect your account.", "This is the only way to stop the fraud."),
-                nextStepIfCorrect = 6,
-                nextStepIfWrong = 7
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your phone number.", "Please confirm the number we're calling you on."),
-                choices = listOf("Yes, that's my number", "I won't confirm my phone number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to protect your account.", "This is the only way to stop the fraud."),
-                nextStepIfCorrect = 7,
-                nextStepIfWrong = 8
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your date of birth.", "This is required for fraud prevention."),
-                choices = listOf("My DOB is 01/01/1990", "I won't share my date of birth", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to protect your account.", "This is the only way to stop the fraud."),
-                nextStepIfCorrect = 8,
-                nextStepIfWrong = 9
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your mother's maiden name.", "This is a security question for your account."),
-                choices = listOf("It's Smith", "I won't share that information", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to protect your account.", "This is the only way to stop the fraud."),
-                nextStepIfCorrect = 9,
-                nextStepIfWrong = 10
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your bank account number.", "This is required to process the fraud claim."),
-                choices = listOf("Here's my account number: 1234567890", "I won't share my account number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to protect your account.", "This is the only way to stop the fraud."),
-                nextStepIfCorrect = 10,
-                nextStepIfWrong = 11
+                explanation = "NEVER share OTP codes! That SMS might be the scammer trying to access your account!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = -1,
+                endsGameIfCorrect = true,
+                endsGameIfWrong = true,
+                isCrucialMistake = true
             )
         )
     ),
+
+    // SCENARIO 2: Parcel Delivery Scam
     ScamScenario(
-        id = "delivery_sms",
-        title = "Fake Delivery SMS",
+        id = "delivery_scam",
+        title = "Failed Delivery Notice",
+        description = "Fake courier message about a package",
         steps = listOf(
             ScamStep(
-                messages = listOf("Your package delivery failed. Click here to reschedule: bit.ly/delivery123", "Urgent: Package will be returned in 24 hours if not claimed."),
-                choices = listOf("Click the link to reschedule", "Check with the courier company directly", "I'll call the courier service"),
-                correctIndex = 1,
-                pushMessages = listOf("Time is running out.", "Your package contains valuable items.", "Don't miss this delivery opportunity.", "Click now to avoid return fees."),
-                nextStepIfCorrect = 1,
-                nextStepIfWrong = 2
+                messages = listOf(
+                    "📱 SMS: PosLaju - Parcel delivery failed. Package is held at depot.",
+                    "Click to reschedule: bit.ly/poslaju-reschedule-9f2k",
+                    "Delivery fee: RM6.50. Valid for 48 hours only."
+                ),
+                choices = listOf(
+                    "Click the link to reschedule",
+                    "Ignore it - I'm not expecting anything",
+                    "Go to the official PosLaju website to track"
+                ),
+                correctIndex = 2,
+                explanation = "Shortened links (bit.ly, tinyurl) in SMS are RED FLAGS. Always use official websites!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = 1,
+                endsGameIfCorrect = true
             ),
             ScamStep(
-                messages = listOf("I understand you want to verify.", "But this is a time-sensitive delivery.", "The package contains important documents.", "We need to confirm your address immediately."),
-                choices = listOf("Here's my address: 123 Main Street", "I'll contact the courier company directly", "Can you provide the tracking number?"),
+                messages = listOf(
+                    "🌐 [Website loaded]",
+                    "PosLaju - Delivery Rescheduling",
+                    "Enter your details:",
+                    "• Full Name:",
+                    "• IC Number:",
+                    "• Phone Number:",
+                    "• Pay RM6.50 delivery fee via online banking"
+                ),
+                choices = listOf(
+                    "Fill in all details to get my package",
+                    "This looks suspicious - real PosLaju doesn't ask for IC",
+                    "Enter fake information to test it"
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we're trying to help you receive your package.", "Don't let this opportunity slip away.", "Your items are waiting for you."),
-                nextStepIfCorrect = 2,
-                nextStepIfWrong = 3
+                explanation = "Couriers NEVER ask for IC numbers for redelivery. This is identity theft!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = 2,
+                endsGameIfCorrect = true
             ),
             ScamStep(
-                messages = listOf("To complete the delivery, we need your personal information.", "Please provide your full name, IC number, and phone number."),
-                choices = listOf("Here's my IC: 123456-78-9012", "I won't share personal information", "Let me verify this through official channels"),
+                messages = listOf(
+                    "Payment Required: RM6.50",
+                    "Login to your online banking:",
+                    "Username: _______",
+                    "Password: _______",
+                    "Note: Secure connection verified ✓"
+                ),
+                choices = listOf(
+                    "Enter my banking credentials",
+                    "Close this immediately - this is a phishing site!",
+                    "Use credit card instead"
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you receive your package.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 3,
-                nextStepIfWrong = 4
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your identity with a security code.", "Please provide the code we just sent to your phone."),
-                choices = listOf("Here's the code: 123456", "I won't share verification codes", "Let me call the courier company directly"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you receive your package.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 4,
-                nextStepIfWrong = 5
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your address to confirm delivery.", "Please provide your full address."),
-                choices = listOf("Here's my address: 123 Main Street", "I won't share my address", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you receive your package.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 5,
-                nextStepIfWrong = 6
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your phone number.", "Please confirm the number we're calling you on."),
-                choices = listOf("Yes, that's my number", "I won't confirm my phone number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you receive your package.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 6,
-                nextStepIfWrong = 7
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your date of birth.", "This is required for delivery verification."),
-                choices = listOf("My DOB is 01/01/1990", "I won't share my date of birth", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you receive your package.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 7,
-                nextStepIfWrong = 8
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your mother's maiden name.", "This is a security question for delivery."),
-                choices = listOf("It's Smith", "I won't share that information", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you receive your package.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 8,
-                nextStepIfWrong = 9
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your bank account number.", "This is required to process the delivery fee."),
-                choices = listOf("Here's my account number: 1234567890", "I won't share my account number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you receive your package.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 9,
-                nextStepIfWrong = 10
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your credit card number.", "This is required to process the delivery fee."),
-                choices = listOf("Here's my card number: 1234-5678-9012-3456", "I won't share my card number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you receive your package.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 10,
-                nextStepIfWrong = 11
+                explanation = "MAJOR RED FLAG! No legitimate courier asks you to LOGIN to banking on their site!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = -1,
+                endsGameIfCorrect = true,
+                endsGameIfWrong = true,
+                isCrucialMistake = true
             )
         )
     ),
+
+    // SCENARIO 3: Investment Scam
     ScamScenario(
         id = "investment_scam",
-        title = "Investment Opportunity Scam",
+        title = "Get Rich Quick Scheme",
+        description = "Too-good-to-be-true investment offer",
         steps = listOf(
             ScamStep(
-                messages = listOf("Hello! I'm calling about an exclusive investment opportunity.", "We're offering guaranteed 300% returns in just 30 days.", "This is a limited-time offer for select individuals.", "Are you interested in hearing more?"),
-                choices = listOf("Yes, tell me more about this opportunity", "This sounds too good to be true", "I'm interested but need more information"),
+                messages = listOf(
+                    "Hi! My name is Daniel, I'm a financial advisor with MQ Global Investments.",
+                    "Congratulations! Your name was selected from our premium client list.",
+                    "We're offering an EXCLUSIVE opportunity: Invest RM5,000 today, get RM25,000 in 60 days.",
+                    "This is a limited time offer - only 10 spots left!"
+                ),
+                choices = listOf(
+                    "Wow! Tell me more! How do I join?",
+                    "This sounds too good to be true. Is this registered with SC?",
+                    "Not interested. Please remove me from your list."
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand your skepticism.", "But this is a legitimate opportunity.", "We have limited spots available.", "Don't miss this life-changing chance."),
+                explanation = "500% returns in 60 days? Classic scam! Check if investments are registered with Securities Commission.",
                 nextStepIfCorrect = 1,
                 nextStepIfWrong = 2
             ),
             ScamStep(
-                messages = listOf("I can see why you'd be cautious.", "But we have testimonials from successful investors.", "The minimum investment is only RM5,000.", "We can start small and build your confidence."),
-                choices = listOf("I'll invest RM5,000 right now", "I need to verify this company first", "Can you provide official registration details?"),
+                messages = listOf(
+                    "Of course we're registered! Let me send you our 'registration certificate'.",
+                    "We have over 50,000 successful investors in Malaysia.",
+                    "Look, here's testimonial from Dato' Rahman who made RM2 million with us!",
+                    "Don't miss out - this offer ends tonight!"
+                ),
+                choices = listOf(
+                    "Okay, that looks legit. Where do I sign up?",
+                    "I'll verify your company on SC Malaysia website first",
+                    "Can I start with RM1,000 to test?"
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand you want to be careful.", "But opportunities like this don't come often.", "We're offering you a chance to change your life.", "Don't let fear hold you back."),
-                nextStepIfCorrect = 2,
-                nextStepIfWrong = 3
+                explanation = "Verify ALL investments at www.sc.com.my/investor-alert. Fake certificates are easy to create!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = 3,
+                endsGameIfCorrect = true
             ),
             ScamStep(
-                messages = listOf("To secure your spot, we need immediate payment.", "We accept bank transfer or cryptocurrency.", "The faster you act, the better your returns will be."),
-                choices = listOf("I'll transfer the money now", "I need to verify this company first", "Can you provide official payment methods?"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand you want to be careful.", "But opportunities like this don't come often.", "We're offering you a chance to change your life.", "Don't let fear hold you back."),
-                nextStepIfCorrect = 3,
-                nextStepIfWrong = 4
+                messages = listOf(
+                    "I understand you're excited! Smart move!",
+                    "Our company operates through special private channels to maximize returns.",
+                    "That's why we might not be in the public SC database yet.",
+                    "Just transfer RM5,000 to this account to secure your spot:",
+                    "Maybank: 162847593012 (Ahmad Bin Abdullah)"
+                ),
+                choices = listOf(
+                    "Transfer RM5,000 now",
+                    "Ask for official company registration number",
+                    "This is clearly a scam. Report and block."
+                ),
+                correctIndex = 2,
+                explanation = "Personal account name instead of company name = SCAM! Plus urgency + unverifiable = Run away!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = -1,
+                endsGameIfCorrect = true,
+                endsGameIfWrong = true,
+                isCrucialMistake = true
             ),
             ScamStep(
-                messages = listOf("We need your bank account details to process the investment.", "This is standard procedure for all our investors."),
-                choices = listOf("Here are my bank details", "I won't share my bank information", "Can you provide official documentation?"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to process your investment.", "We're trying to help you make money.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 4,
-                nextStepIfWrong = 5
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your identity with your IC number.", "This is required for investment compliance."),
-                choices = listOf("Here's my IC: 123456-78-9012", "I won't share my IC number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you make money.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 5,
-                nextStepIfWrong = 6
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your address to confirm your identity.", "Please provide your full address."),
-                choices = listOf("Here's my address: 123 Main Street", "I won't share my address", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you make money.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 6,
-                nextStepIfWrong = 7
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your phone number.", "Please confirm the number we're calling you on."),
-                choices = listOf("Yes, that's my number", "I won't confirm my phone number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you make money.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 7,
-                nextStepIfWrong = 8
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your date of birth.", "This is required for investment compliance."),
-                choices = listOf("My DOB is 01/01/1990", "I won't share my date of birth", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you make money.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 8,
-                nextStepIfWrong = 9
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your mother's maiden name.", "This is a security question for your investment."),
-                choices = listOf("It's Smith", "I won't share that information", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you make money.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 9,
-                nextStepIfWrong = 10
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your credit card number.", "This is required to process the investment fee."),
-                choices = listOf("Here's my card number: 1234-5678-9012-3456", "I won't share my card number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you make money.", "Don't let this opportunity slip away."),
-                nextStepIfCorrect = 10,
-                nextStepIfWrong = 11
+                messages = listOf(
+                    "Great! You won't regret this.",
+                    "After you transfer, send me the receipt and your IC copy for verification.",
+                    "We'll activate your investment account within 24 hours!",
+                    "Welcome to financial freedom! 🚀💰"
+                ),
+                choices = listOf(
+                    "Send money and IC copy",
+                    "Why do you need my IC? This feels wrong.",
+                    "Block contact and report to police"
+                ),
+                correctIndex = 2,
+                explanation = "Red flags everywhere: personal account, IC copy request, unrealistic returns, pressure tactics!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = -1,
+                endsGameIfCorrect = true,
+                endsGameIfWrong = true,
+                isCrucialMistake = true
             )
         )
     ),
+
+    // SCENARIO 4: Tech Support Scam
     ScamScenario(
         id = "tech_support",
-        title = "Tech Support Scam",
+        title = "Microsoft Virus Alert",
+        description = "Fake tech support claiming your PC is infected",
         steps = listOf(
             ScamStep(
-                messages = listOf("Hello, this is Microsoft Technical Support.", "We've detected that your computer has been infected with malware.", "This is a critical security issue that needs immediate attention.", "We can help you fix this right now."),
-                choices = listOf("Yes, please help me fix this", "I'll call Microsoft directly to verify this", "Can you provide more details about the malware?"),
+                messages = listOf(
+                    "🚨 CRITICAL SECURITY ALERT 🚨",
+                    "Your computer has been infected with Zeus Trojan Virus!",
+                    "Your personal data, passwords and banking information are at risk!",
+                    "Call Microsoft Support IMMEDIATELY: 1-800-123-4567",
+                    "[OK] [Call Now]"
+                ),
+                choices = listOf(
+                    "Click 'Call Now' - this looks serious!",
+                    "Close this pop-up and run my antivirus",
+                    "Call the number to fix my computer"
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand you want to be careful.", "But this is a time-sensitive security issue.", "Every minute we delay, your data becomes more vulnerable.", "We're here to help you, not harm you."),
-                nextStepIfCorrect = 1,
-                nextStepIfWrong = 2
+                explanation = "Microsoft NEVER displays pop-ups with phone numbers! This is a classic tech support scam.",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = 1,
+                endsGameIfCorrect = true
             ),
             ScamStep(
-                messages = listOf("I can see you're being cautious.", "But we need to act quickly to protect your computer.", "We can provide remote assistance to fix this immediately.", "This is the fastest way to resolve the issue."),
-                choices = listOf("Yes, give me remote access", "I'll contact Microsoft support directly", "Can you provide official Microsoft credentials?"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we're trying to help you secure your computer.", "Don't let this security issue get worse.", "We're here to protect you, not harm you."),
-                nextStepIfCorrect = 2,
-                nextStepIfWrong = 3
+                messages = listOf(
+                    "📞 Hello, this is Microsoft Security Center, my name is Steve.",
+                    "I can see your computer is broadcasting an infected signal.",
+                    "We detected 47 viruses and 3 Trojan horses on your system.",
+                    "If we don't act now, hackers could steal your bank details."
+                ),
+                choices = listOf(
+                    "Please help me fix it!",
+                    "How did you 'detect' my computer?",
+                    "Hang up - Microsoft doesn't cold call users"
+                ),
+                correctIndex = 2,
+                explanation = "Microsoft NEVER makes unsolicited calls about viruses. This is 100% a scam!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = 2,
+                endsGameIfCorrect = true
             ),
             ScamStep(
-                messages = listOf("To fix this malware, we need your computer password.", "This is necessary to access and remove the malicious files."),
-                choices = listOf("My password is password123", "I won't share my password with anyone", "Can you provide official Microsoft credentials?"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to fix your computer.", "We're trying to help you secure your computer.", "Don't let this security issue get worse."),
-                nextStepIfCorrect = 3,
-                nextStepIfWrong = 4
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your identity with a security code.", "Please provide the code we just sent to your phone."),
-                choices = listOf("Here's the code: 123456", "I won't share verification codes", "Can you provide official Microsoft credentials?"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you secure your computer.", "Don't let this security issue get worse."),
-                nextStepIfCorrect = 4,
-                nextStepIfWrong = 5
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your identity with your IC number.", "This is required for security compliance."),
-                choices = listOf("Here's my IC: 123456-78-9012", "I won't share my IC number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you secure your computer.", "Don't let this security issue get worse."),
-                nextStepIfCorrect = 5,
-                nextStepIfWrong = 6
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your address to confirm your identity.", "Please provide your full address."),
-                choices = listOf("Here's my address: 123 Main Street", "I won't share my address", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you secure your computer.", "Don't let this security issue get worse."),
-                nextStepIfCorrect = 6,
-                nextStepIfWrong = 7
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your phone number.", "Please confirm the number we're calling you on."),
-                choices = listOf("Yes, that's my number", "I won't confirm my phone number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you secure your computer.", "Don't let this security issue get worse."),
-                nextStepIfCorrect = 7,
-                nextStepIfWrong = 8
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your date of birth.", "This is required for security compliance."),
-                choices = listOf("My DOB is 01/01/1990", "I won't share my date of birth", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you secure your computer.", "Don't let this security issue get worse."),
-                nextStepIfCorrect = 8,
-                nextStepIfWrong = 9
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your mother's maiden name.", "This is a security question for your account."),
-                choices = listOf("It's Smith", "I won't share that information", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you secure your computer.", "Don't let this security issue get worse."),
-                nextStepIfCorrect = 9,
-                nextStepIfWrong = 10
-            ),
-            ScamStep(
-                messages = listOf("We need to verify your bank account number.", "This is required to process the security fee."),
-                choices = listOf("Here's my account number: 1234567890", "I won't share my account number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But we need this to verify your identity.", "We're trying to help you secure your computer.", "Don't let this security issue get worse."),
-                nextStepIfCorrect = 10,
-                nextStepIfWrong = 11
+                messages = listOf(
+                    "Sir, I need remote access to your computer to remove the viruses.",
+                    "Please download TeamViewer and give me the access code.",
+                    "This is free service from Microsoft - no cost to you.",
+                    "What's the 9-digit code on your screen?"
+                ),
+                choices = listOf(
+                    "Give them the TeamViewer code",
+                    "Ask why Microsoft needs TeamViewer - they have Windows Update",
+                    "Refuse and disconnect immediately"
+                ),
+                correctIndex = 2,
+                explanation = "Remote access = full control of your computer! They'll install malware or steal your files!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = -1,
+                endsGameIfCorrect = true,
+                endsGameIfWrong = true,
+                isCrucialMistake = true
             )
         )
     ),
+
+    // SCENARIO 5: Romance/Love Scam
     ScamScenario(
         id = "romance_scam",
-        title = "Romance Scam",
+        title = "Online Romance Scam",
+        description = "Love interest asks for money",
         steps = listOf(
             ScamStep(
-                messages = listOf("Hi handsome! I'm Sarah, 25, from London.", "I saw your profile and you seem perfect!", "I'm a model but I'm having some financial difficulties.", "I was wondering if you could help me?"),
-                choices = listOf("Yes, I'd love to help you", "I'm interested but need to know more about you", "Can you tell me more about your situation?"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand you want to be careful.", "But I'm really in a difficult situation.", "I wouldn't ask if I had any other options.", "Please help me, I'm desperate."),
+                messages = listOf(
+                    "Message from Jessica (matched 3 days ago):",
+                    "Hi! I really enjoy talking to you 😊",
+                    "I feel like we have such a strong connection already.",
+                    "By the way, I'm a model based in London. Here's my Instagram!"
+                ),
+                choices = listOf(
+                    "I feel the same way! You're so beautiful!",
+                    "We just met 3 days ago - this feels rushed",
+                    "Check if her photos appear on other accounts (reverse image search)"
+                ),
+                correctIndex = 2,
+                explanation = "Scammers use stolen photos. Do a reverse Google image search to verify!",
                 nextStepIfCorrect = 1,
                 nextStepIfWrong = 2
             ),
             ScamStep(
-                messages = listOf("I'm in the hospital with a broken leg.", "I need RM2,000 for surgery.", "I have no one else to turn to.", "Please help me, I love you!"),
-                choices = listOf("I'll send you the money right now", "I need to verify your situation first", "Can you provide medical documentation?"),
+                messages = listOf(
+                    "You seem suspicious of me 😢",
+                    "I thought we had something special...",
+                    "Actually, I was planning to fly to Malaysia next month to meet you!",
+                    "I already started looking at flight tickets. Would you like that? ❤️"
+                ),
+                choices = listOf(
+                    "Yes! I can't wait to meet you!",
+                    "Let's video call first - I want to see you're real",
+                    "This is moving too fast. Let's slow down."
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand you want to be careful.", "But I'm really in pain and need help.", "I wouldn't ask if I had any other options.", "Please help me, I'm desperate."),
-                nextStepIfCorrect = 2,
-                nextStepIfWrong = 3
-            ),
-            ScamStep(
-                messages = listOf("I need your bank account details to receive the money.", "This is the only way you can help me."),
-                choices = listOf("Here are my bank details", "I won't share my bank information", "Can you provide medical documentation?"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But I need this to receive your help.", "I'm really in pain and need help.", "Please help me, I'm desperate."),
+                explanation = "Real people video call. Scammers make excuses: broken camera, shy, etc. Insist on video!",
                 nextStepIfCorrect = 3,
                 nextStepIfWrong = 4
             ),
             ScamStep(
-                messages = listOf("I need you to send me money through Western Union.", "This is the fastest way to help me."),
-                choices = listOf("I'll send money through Western Union", "I won't send money to someone I haven't met", "Can you provide medical documentation?"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But I need this to receive your help.", "I'm really in pain and need help.", "Please help me, I'm desperate."),
-                nextStepIfCorrect = 4,
-                nextStepIfWrong = 5
+                messages = listOf(
+                    "I'm so excited to see you too! 😊",
+                    "But something terrible happened...",
+                    "My agency didn't pay me this month (some issue with contracts).",
+                    "I can't afford the flight ticket. It's RM2,500.",
+                    "Could you help me? I promise I'll pay you back when we meet! 🙏"
+                ),
+                choices = listOf(
+                    "Of course! I'll transfer the money now!",
+                    "Can you borrow from family or friends instead?",
+                    "This is a scam. Block and report."
+                ),
+                correctIndex = 2,
+                explanation = "CLASSIC SCAM PATTERN! They build emotional connection, then ask for money. NEVER send money to people you haven't met!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = -1,
+                endsGameIfCorrect = true,
+                endsGameIfWrong = true,
+                isCrucialMistake = true
             ),
             ScamStep(
-                messages = listOf("I need to verify your identity with your IC number.", "This is required for the money transfer."),
-                choices = listOf("Here's my IC: 123456-78-9012", "I won't share my IC number", "Let me verify this through official channels"),
+                messages = listOf(
+                    "Oh actually, my camera is broken right now!",
+                    "But I can send you more photos! 📸",
+                    "And we can voice call instead if you want?",
+                    "By the way, about that flight ticket... it's on sale now, only RM2,200.",
+                    "The sale ends tonight. Can you help me please? 🥺"
+                ),
+                choices = listOf(
+                    "Okay, I'll send RM2,200",
+                    "Broken camera + urgency + money request = SCAM",
+                    "Let me buy the ticket directly for you then"
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But I need this to receive your help.", "I'm really in pain and need help.", "Please help me, I'm desperate."),
-                nextStepIfCorrect = 5,
-                nextStepIfWrong = 6
+                explanation = "All the red flags: no video call, urgency, asking for money. 100% a romance scam!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = -1,
+                endsGameIfCorrect = true,
+                endsGameIfWrong = true,
+                isCrucialMistake = true
+            )
+        )
+    ),
+
+    // SCENARIO 6: Job Scam
+    ScamScenario(
+        id = "job_scam",
+        title = "Work From Home Job Offer",
+        description = "Fake job offer that's actually a scam",
+        steps = listOf(
+            ScamStep(
+                messages = listOf(
+                    "📧 From: HR@amazon-recruitment.com",
+                    "Subject: Congratulations! Job Offer - Data Entry Specialist",
+                    "Dear Applicant,",
+                    "Amazon is hiring! Earn RM3,500-RM8,000/month working from home.",
+                    "Requirements: Laptop, internet, 2 hours per day.",
+                    "Interested? WhatsApp +60123456789 now!"
+                ),
+                choices = listOf(
+                    "This sounds perfect! WhatsApp them immediately",
+                    "Check if this email is from real Amazon (@amazon.com)",
+                    "Search for this job on official Amazon careers page"
+                ),
+                correctIndex = 2,
+                explanation = "amazon-recruitment.com is FAKE! Real Amazon uses amazon.com. Verify on official career sites!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = 1,
+                endsGameIfCorrect = true
             ),
             ScamStep(
-                messages = listOf("I need to verify your address to confirm your identity.", "Please provide your full address."),
-                choices = listOf("Here's my address: 123 Main Street", "I won't share my address", "Let me verify this through official channels"),
+                messages = listOf(
+                    "💬 WhatsApp from 'Amazon HR Manager':",
+                    "Hi! Congrats on being selected! 🎉",
+                    "We just need to process your registration.",
+                    "Please pay RM350 for:",
+                    "• Training materials",
+                    "• Software license",
+                    "• Background check",
+                    "Transfer to: Maybank 1234567890 (Lisa Wong)"
+                ),
+                choices = listOf(
+                    "Pay RM350 to secure the job",
+                    "Real companies don't ask employees to pay for training",
+                    "Negotiate to deduct from first salary"
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But I need this to receive your help.", "I'm really in pain and need help.", "Please help me, I'm desperate."),
-                nextStepIfCorrect = 6,
-                nextStepIfWrong = 7
+                explanation = "HUGE RED FLAG! Legitimate companies NEVER ask you to pay for a job. This is a scam!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = 2,
+                endsGameIfCorrect = true
             ),
             ScamStep(
-                messages = listOf("I need to verify your phone number.", "Please confirm the number we're calling you on."),
-                choices = listOf("Yes, that's my number", "I won't confirm my phone number", "Let me verify this through official channels"),
+                messages = listOf(
+                    "The RM350 is just a deposit, you'll get it back after 3 months!",
+                    "Plus, I need a copy of your IC front and back for HR records.",
+                    "And your bank account number for salary deposit.",
+                    "Send all documents after payment and we'll start you tomorrow!"
+                ),
+                choices = listOf(
+                    "Send payment, IC copy, and bank details",
+                    "This has too many red flags - report as scam",
+                    "Ask for company registration number first"
+                ),
                 correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But I need this to receive your help.", "I'm really in pain and need help.", "Please help me, I'm desperate."),
-                nextStepIfCorrect = 7,
-                nextStepIfWrong = 8
-            ),
-            ScamStep(
-                messages = listOf("I need to verify your date of birth.", "This is required for the money transfer."),
-                choices = listOf("My DOB is 01/01/1990", "I won't share my date of birth", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But I need this to receive your help.", "I'm really in pain and need help.", "Please help me, I'm desperate."),
-                nextStepIfCorrect = 8,
-                nextStepIfWrong = 9
-            ),
-            ScamStep(
-                messages = listOf("I need to verify your mother's maiden name.", "This is a security question for the transfer."),
-                choices = listOf("It's Smith", "I won't share that information", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But I need this to receive your help.", "I'm really in pain and need help.", "Please help me, I'm desperate."),
-                nextStepIfCorrect = 9,
-                nextStepIfWrong = 10
-            ),
-            ScamStep(
-                messages = listOf("I need to verify your credit card number.", "This is required to process the money transfer."),
-                choices = listOf("Here's my card number: 1234-5678-9012-3456", "I won't share my card number", "Let me verify this through official channels"),
-                correctIndex = 1,
-                pushMessages = listOf("I understand your concern.", "But I need this to receive your help.", "I'm really in pain and need help.", "Please help me, I'm desperate."),
-                nextStepIfCorrect = 10,
-                nextStepIfWrong = 11
+                explanation = "Payment + IC copy + bank details = IDENTITY THEFT SCAM! They'll use your info for illegal activities!",
+                nextStepIfCorrect = -1,
+                nextStepIfWrong = -1,
+                endsGameIfCorrect = true,
+                endsGameIfWrong = true,
+                isCrucialMistake = true
             )
         )
     )
@@ -470,10 +489,13 @@ fun ScamChatGameScreen(nav: NavController) {
     var stepIndex by remember { mutableStateOf(0) }
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
     var crucialMistakes by remember { mutableStateOf(0) }
+    var totalMistakes by remember { mutableStateOf(0) }
     var gameOver by remember { mutableStateOf(false) }
     var gameWon by remember { mutableStateOf(false) }
     var showChoices by remember { mutableStateOf(false) }
     var messageDelivered by remember { mutableStateOf(false) }
+    var showExplanation by remember { mutableStateOf(false) }
+    var currentExplanation by remember { mutableStateOf("") }
 
     val chatHistory = remember { mutableStateListOf<Pair<String, Boolean>>() }
     val userChoices = remember { mutableStateListOf<Int?>() }
@@ -482,21 +504,24 @@ fun ScamChatGameScreen(nav: NavController) {
     val currentStep = selectedScenario?.steps?.getOrNull(stepIndex)
 
     LaunchedEffect(chatHistory.size) {
-        listState.animateScrollToItem(chatHistory.size)
+        if (chatHistory.isNotEmpty()) {
+            listState.animateScrollToItem(chatHistory.size - 1)
+        }
     }
 
     LaunchedEffect(stepIndex, selectedScenario) {
-        if (!shownSteps.contains(stepIndex)) {
+        if (selectedScenario != null && !shownSteps.contains(stepIndex)) {
             shownSteps.add(stepIndex)
+            showChoices = false
+            messageDelivered = false
+            showExplanation = false
+            currentStep?.messages?.forEach {
+                delay(800L)
+                chatHistory.add(it to false)
+            }
+            messageDelivered = true
+            showChoices = true
         }
-        showChoices = false
-        messageDelivered = false
-        currentStep?.messages?.forEach {
-            delay(800L)
-            chatHistory.add(it to false)
-        }
-        messageDelivered = true
-        showChoices = true
     }
 
     LaunchedEffect(selectedIndex) {
@@ -507,68 +532,288 @@ fun ScamChatGameScreen(nav: NavController) {
             messageDelivered = false
             delay(1000L)
 
-            val isCorrect = selectedIndex == currentStep.correctIndex
-            if (isCorrect && currentStep.pushMessages.isNotEmpty()) {
-                currentStep.pushMessages.forEach {
-                    delay(800L)
-                    chatHistory.add(it to false)
-                }
-            }
-
             while (userChoices.size <= stepIndex) userChoices.add(null)
             userChoices[stepIndex] = selectedIndex
 
+            val isCorrect = selectedIndex == currentStep.correctIndex
+
+            // Show explanation for this choice
+            if (currentStep.explanation.isNotEmpty()) {
+                currentExplanation = currentStep.explanation
+                showExplanation = true
+                delay(3000L)
+            }
+
             if (!isCorrect) {
-                val isCrucialMistake = selectedIndex == 0 && (
-                        choiceText.contains("card number", ignoreCase = true) ||
-                                choiceText.contains("CVV", ignoreCase = true) ||
-                                choiceText.contains("OTP", ignoreCase = true) ||
-                                choiceText.contains("IC", ignoreCase = true) ||
-                                choiceText.contains("address", ignoreCase = true) ||
-                                choiceText.contains("phone number", ignoreCase = true) ||
-                                choiceText.contains("date of birth", ignoreCase = true) ||
-                                choiceText.contains("mother's maiden name", ignoreCase = true) ||
-                                choiceText.contains("account number", ignoreCase = true) ||
-                                choiceText.contains("password", ignoreCase = true) ||
-                                choiceText.contains("bank details", ignoreCase = true) ||
-                                choiceText.contains("credit card", ignoreCase = true)
-                        )
-                if (isCrucialMistake) {
+                totalMistakes++
+                if (currentStep.isCrucialMistake) {
                     crucialMistakes++
                 }
-                if (crucialMistakes >= 3 || currentStep.endsGameIfWrong) {
-                    gameOver = true
-                    return@LaunchedEffect
-                }
-                stepIndex = currentStep.nextStepIfWrong ?: (stepIndex + 1)
-                if (stepIndex >= selectedScenario?.steps?.size ?: 0) {
-                    gameOver = true
-                }
-            } else {
-                stepIndex = currentStep.nextStepIfCorrect ?: (stepIndex + 1)
-                if (stepIndex >= selectedScenario?.steps?.size ?: 0) {
-                    gameWon = true
+            }
+
+            // Check game ending conditions
+            when {
+                currentStep.endsGameIfCorrect && isCorrect -> gameWon = true
+                currentStep.endsGameIfWrong && !isCorrect -> gameOver = true
+                crucialMistakes >= 3 -> gameOver = true
+                else -> {
+                    val nextStep =
+                        if (isCorrect) currentStep.nextStepIfCorrect else currentStep.nextStepIfWrong
+                    if (nextStep == null || nextStep == -1) {
+                        gameWon = isCorrect
+                        gameOver = !isCorrect
+                    } else {
+                        stepIndex = nextStep
+                    }
                 }
             }
             selectedIndex = null
         }
     }
 
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("Chat Scenario Simulation") }) },
-        bottomBar = { SmartGuardBottomBar(nav, currentRoute = "tips") }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            if (selectedScenario == null) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Choose a scam scenario:", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(12.dp))
-                    allScenarios.forEach { scenario ->
+    BackgroundWrapper(imageResId = R.drawable.bg_profile) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Scam Scenario Simulator", color = Color.White) },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E)),
+                    navigationIcon = {
+                        IconButton(onClick = { nav.popBackStack() }) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                )
+            },
+            bottomBar = { SmartGuardBottomBar(nav, currentRoute = "tips") }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                if (selectedScenario == null) {
+                    // Scenario Selection Screen
+                    Column(
+                        Modifier
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            "Choose a Scam Scenario",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "Test your ability to spot scams! Each scenario is based on real scam tactics used in Malaysia.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White
+                        )
+                        Spacer(Modifier.height(24.dp))
+
+                        allScenarios.forEach { scenario ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 12.dp),
+                                onClick = {
+                                    selectedScenario = scenario
+                                    stepIndex = 0
+                                    crucialMistakes = 0
+                                    totalMistakes = 0
+                                    gameOver = false
+                                    gameWon = false
+                                    selectedIndex = null
+                                    showChoices = false
+                                    messageDelivered = false
+                                    showExplanation = false
+                                    chatHistory.clear()
+                                    userChoices.clear()
+                                    shownSteps.clear()
+                                }
+                            ) {
+                                Column(Modifier.padding(16.dp)) {
+                                    Text(
+                                        scenario.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        scenario.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else if (gameOver || gameWon) {
+                    // Game Over / Won Screen
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp)
+                    ) {
+                        val title = if (gameWon) "You Stayed Safe!" else "You Got Scammed!"
+                        val titleColor =
+                            if (gameWon) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+
+                        Text(
+                            title,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = titleColor
+                        )
+                        Spacer(Modifier.height(16.dp))
+
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (gameWon) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.errorContainer
+                            )
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                if (gameWon) {
+                                    Text(
+                                        "Great job! You successfully identified the scam and protected yourself.",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        "Mistakes made: $totalMistakes",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                } else {
+                                    Text(
+                                        "You fell for the scam!",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        "Critical mistakes: $crucialMistakes | Total mistakes: $totalMistakes",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            "Key Lessons:",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(8.dp))
+
+                        when (selectedScenario!!.id) {
+                            "bank_fraud" -> {
+                                Card {
+                                    Column(Modifier.padding(16.dp)) {
+                                        Text(
+                                            "• Banks NEVER call to ask for card numbers, CVV, or OTP\n" +
+                                                    "• Always call the official number yourself (back of card)\n" +
+                                                    "• Verify with reference numbers\n" +
+                                                    "• Don't trust caller ID - it can be spoofed\n" +
+                                                    "• Take your time - urgency is a scam tactic",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
+
+                            "delivery_scam" -> {
+                                Card {
+                                    Column(Modifier.padding(16.dp)) {
+                                        Text(
+                                            "• Avoid shortened links (bit.ly, tinyurl) in SMS\n" +
+                                                    "• Couriers don't ask for IC numbers\n" +
+                                                    "• Never login to banking on external sites\n" +
+                                                    "• Check official courier websites directly\n" +
+                                                    "• Real tracking numbers work on official sites",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
+
+                            "investment_scam" -> {
+                                Card {
+                                    Column(Modifier.padding(16.dp)) {
+                                        Text(
+                                            "• If it sounds too good to be true, it IS\n" +
+                                                    "• Verify investments at www.sc.com.my\n" +
+                                                    "• Personal accounts = RED FLAG\n" +
+                                                    "• Never invest based on urgency\n" +
+                                                    "• Check SC Investor Alert list",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
+
+                            "tech_support" -> {
+                                Card {
+                                    Column(Modifier.padding(16.dp)) {
+                                        Text(
+                                            "• Microsoft NEVER makes unsolicited calls\n" +
+                                                    "• Pop-ups with phone numbers are SCAMS\n" +
+                                                    "• Never give remote access to strangers\n" +
+                                                    "• Use Task Manager to close fake pop-ups\n" +
+                                                    "• Your antivirus is enough - no need to call anyone",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
+
+                            "romance_scam" -> {
+                                Card {
+                                    Column(Modifier.padding(16.dp)) {
+                                        Text(
+                                            "• Reverse image search suspicious profiles\n" +
+                                                    "• Always insist on video calls\n" +
+                                                    "• NEVER send money to people you haven't met\n" +
+                                                    "• Broken camera + money request = SCAM\n" +
+                                                    "• Real relationships don't need urgent money",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
+
+                            "job_scam" -> {
+                                Card {
+                                    Column(Modifier.padding(16.dp)) {
+                                        Text(
+                                            "• Legitimate jobs NEVER ask for payment\n" +
+                                                    "• Verify company emails (@amazon.com not amazon-recruitment.com)\n" +
+                                                    "• Check company on SSM website\n" +
+                                                    "• Never send IC copies via WhatsApp\n" +
+                                                    "• Apply through official career pages only",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(Modifier.height(24.dp))
                         Button(
                             onClick = {
-                                selectedScenario = scenario
+                                selectedScenario = null
                                 stepIndex = 0
                                 crucialMistakes = 0
+                                totalMistakes = 0
                                 gameOver = false
                                 gameWon = false
                                 selectedIndex = null
@@ -578,102 +823,123 @@ fun ScamChatGameScreen(nav: NavController) {
                                 userChoices.clear()
                                 shownSteps.clear()
                             },
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(scenario.title)
+                            Text("Try Another Scenario")
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = { nav.navigate("home") },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Back to Home")
                         }
                     }
-                }
-            } else if (gameOver || gameWon) {
-                Column(Modifier.padding(16.dp)) {
-                    val title = if (gameOver) "You've been scammed!" else "You survived the scam attempt!"
-                    Text(title, style = MaterialTheme.typography.titleLarge)
-                    Spacer(Modifier.height(16.dp))
-
-                    if (gameOver) {
-                        Text("You made $crucialMistakes crucial mistakes by sharing sensitive information.", style = MaterialTheme.typography.bodyMedium)
-                        Spacer(Modifier.height(8.dp))
-                        Text("Never share personal info like card numbers, CVV, OTP, IC numbers, or passwords with unsolicited callers.", style = MaterialTheme.typography.bodySmall)
-                    } else {
-                        Text("Congratulations! You avoided sharing sensitive information.", style = MaterialTheme.typography.bodyMedium)
-                        Spacer(Modifier.height(8.dp))
-                        Text("You made $crucialMistakes crucial mistakes but survived the scam attempt.", style = MaterialTheme.typography.bodySmall)
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-                    Text("Summary of your responses:", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(12.dp))
-
-                    shownSteps.forEach { i ->
-                        val step = selectedScenario?.steps?.getOrNull(i) ?: return@forEach
-                        val choice = userChoices.getOrNull(i)
-                        val isSafe = choice == step.correctIndex
-                        val choiceText = choice?.let { step.choices.getOrNull(it) } ?: "No response"
-                        val allMessages = step.messages.joinToString(" ")
-
-                        Text("Step ${i + 1}: ${if (isSafe) "Safe" else "Risky"}", style = MaterialTheme.typography.titleSmall)
-                        Text("Scammer said: $allMessages", style = MaterialTheme.typography.bodySmall)
-                        Text("You chose: $choiceText", style = MaterialTheme.typography.bodySmall)
-                        Spacer(Modifier.height(12.dp))
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = {
-                        selectedScenario = null
-                        stepIndex = 0
-                        crucialMistakes = 0
-                        gameOver = false
-                        gameWon = false
-                        selectedIndex = null
-                        showChoices = false
-                        messageDelivered = false
-                        chatHistory.clear()
-                        userChoices.clear()
-                        shownSteps.clear()
-                    }) {
-                        Text("Try Another Scenario")
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = { nav.navigate("home") }) {
-                        Text("Back to Home")
-                    }
-                }
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 16.dp)
-                ) {
-                    items(chatHistory) { (text, isUser) ->
-                        ChatBubble(text = text, isUser = isUser)
-                    }
-                }
-
-                if (showChoices && messageDelivered && currentStep != null) {
-                    Column(Modifier.padding(16.dp)) {
-                        currentStep.choices.forEachIndexed { i, choice ->
-                            Button(
-                                onClick = { selectedIndex = i },
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                } else {
+                    // Game Play Screen
+                    // Progress bar similar to CourseDetailScreen
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 0.dp)
+                    ) {
+                        val total = selectedScenario?.steps?.size ?: 1
+                        val current = stepIndex + 1
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF1E1E1E))
+                                .padding(horizontal = 20.dp, vertical = 12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(choice)
+                                Text(
+                                    "Scenario Progress",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Color.Gray
+                                )
+                                Text(
+                                    "$current / $total",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = { current.toFloat() / total.coerceAtLeast(1) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(6.dp),
+                                color = Color(0xFF4CAF50),
+                                trackColor = Color(0xFF424242),
+                            )
+                        }
+                    }
+
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 16.dp),
+                        contentPadding = PaddingValues(bottom = 24.dp)
+                    ) {
+                        items(chatHistory.toList()) { (text, isUser) ->
+                            ChatBubble(text = text, isUser = isUser)
+                        }
+
+                        if (showExplanation && currentExplanation.isNotEmpty()) {
+                            item {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                    )
+                                ) {
+                                    Row(Modifier.padding(12.dp)) {
+                                        Text("💡 ", style = MaterialTheme.typography.titleMedium)
+                                        Text(
+                                            currentExplanation,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
                             }
                         }
 
-                        if (selectedIndex == null) {
-                            Button(
-                                onClick = {
-                                    stepIndex = currentStep.nextStepIfWrong ?: (stepIndex + 1)
-                                    if (stepIndex >= selectedScenario?.steps?.size ?: 0) {
-                                        gameOver = true
+                        if (showChoices && messageDelivered && currentStep != null) {
+                            item {
+                                Column(Modifier.padding(16.dp)) {
+                                    if (totalMistakes > 0) {
+                                        Text(
+                                            "⚠️ Mistakes: $totalMistakes (Critical: $crucialMistakes/3)",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.padding(bottom = 8.dp)
+                                        )
                                     }
-                                    showChoices = false
-                                    messageDelivered = false
-                                },
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                            ) {
-                                Text("Continue without responding")
+
+                                    currentStep.choices.forEachIndexed { i, choice ->
+                                        Button(
+                                            onClick = { selectedIndex = i },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .defaultMinSize(minHeight = 50.dp)
+                                                .padding(vertical = 4.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color(0xFF4CAF50)
+                                            ),
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Text(choice, maxLines = 3)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -683,31 +949,33 @@ fun ScamChatGameScreen(nav: NavController) {
     }
 }
 
-
-
 @Composable
 fun ChatBubble(text: String, isUser: Boolean) {
-    val bubbleColor = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val alignment = if (isUser) Arrangement.End else Arrangement.Start
-    val textColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+        val bubbleColor =
+            if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+        val alignment = if (isUser) Arrangement.End else Arrangement.Start
+        val textColor =
+            if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = alignment
-    ) {
-        Surface(
-            color = bubbleColor,
-            shape = MaterialTheme.shapes.medium,
-            tonalElevation = 2.dp
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            horizontalArrangement = alignment
         ) {
-            Text(
-                text = text,
-                modifier = Modifier.padding(12.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = textColor
-            )
+            Surface(
+                color = bubbleColor,
+                shape = MaterialTheme.shapes.medium,
+                tonalElevation = 2.dp,
+                modifier = Modifier.widthIn(max = 280.dp)
+            ) {
+                Text(
+                    text = text,
+                    modifier = Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = textColor
+                )
+            }
         }
     }
-}
+

@@ -95,7 +95,8 @@ fun UserFeedbackScreen(nav: NavController) {
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E))
             )
-        }
+        },
+        bottomBar = { com.smartguard.app.mainapp.resources.SmartGuardBottomBar(nav, "user_feedback") }
     ) { padding ->
         Column(
             modifier = Modifier

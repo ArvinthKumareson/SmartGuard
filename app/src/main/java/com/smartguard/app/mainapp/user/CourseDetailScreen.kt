@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import android.widget.VideoView
 import android.widget.MediaController
 import android.net.Uri
+import coil.compose.AsyncImage
 
 @Composable
 fun CourseDetailScreen(nav: NavController, courseTitle: String) {
@@ -46,6 +47,15 @@ fun CourseDetailScreen(nav: NavController, courseTitle: String) {
     val courseContent = viewModel.getCourseContent(courseTitle)
     val isCourseCompleted = viewModel.isCourseCompleted(courseTitle)
     var showCompletionDialog by remember { mutableStateOf(false) }
+    
+    // Track if waited for initial load
+    var hasWaitedForLoad by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(uiState.isLoading) {
+        if (!uiState.isLoading && uiState.courses.isNotEmpty()) {
+            hasWaitedForLoad = true
+        }
+    }
     
     BackgroundWrapper(imageResId = R.drawable.bg_profile) {
         Scaffold(
@@ -67,15 +77,23 @@ fun CourseDetailScreen(nav: NavController, courseTitle: String) {
             },
             bottomBar = { SmartGuardBottomBar(nav, currentRoute = "tips") }
         ) { padding ->
-            // Show loading state
-            if (uiState.isLoading) {
+            // Show loading state (or if course not found coz haven't finished loading yet)
+            if (uiState.isLoading || (courseContent == null && !hasWaitedForLoad)) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF4CAF50))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = Color(0xFF4CAF50))
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            "Loading course...",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
                 return@Scaffold
             }
@@ -115,7 +133,7 @@ fun CourseDetailScreen(nav: NavController, courseTitle: String) {
                 return@Scaffold
             }
             
-            // Show not found state
+            // Show not found state (only if waited and it's still null)
             if (courseContent == null) {
                 Box(
                     modifier = Modifier
@@ -150,59 +168,102 @@ fun CourseDetailScreen(nav: NavController, courseTitle: String) {
                 return@Scaffold
             }
             
-            // Show course content
+            // Show course content (courseContent is guaranteed non-null here)
+            val pagerState = rememberPagerState(pageCount = { courseContent.tips.size + 1 })
+            val scope = rememberCoroutineScope()
+            
             Column(
                 modifier = Modifier
+                    .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState())
             ) {
-
-                // Course Tips with Swipeable Navigation
-                Text(
-                    "Security Tips & Best Practices",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(12.dp))
-
-                val pagerState = rememberPagerState(pageCount = { courseContent.tips.size })
-                val scope = rememberCoroutineScope()
-
+                // Progress Bar
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF1E1E1E))
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Course Progress",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.Gray
+                        )
+                        Text(
+                            "${pagerState.currentPage + 1} / ${courseContent.tips.size + 1}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { (pagerState.currentPage + 1).toFloat() / (courseContent.tips.size + 1) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
+                        color = Color(0xFF4CAF50),
+                        trackColor = Color(0xFF424242),
+                    )
+                }
+                
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.weight(1f)
                 ) { page ->
-                    TipDetailPage(
-                        tip = courseContent.tips[page],
-                        tipNumber = page + 1,
-                        totalTips = courseContent.tips.size,
-                        onNext = {
-                            if (page < courseContent.tips.size - 1) {
+                    if (page < courseContent.tips.size) {
+                        // Show tip page
+                        TipDetailPage(
+                            tip = courseContent.tips[page],
+                            tipNumber = page + 1,
+                            totalTips = courseContent.tips.size,
+                            onNext = {
                                 scope.launch {
                                     pagerState.animateScrollToPage(page + 1)
                                 }
-                            }
-                        },
-                        onPrevious = {
-                            if (page > 0) {
+                            },
+                            onPrevious = {
+                                if (page > 0) {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(page - 1)
+                                    }
+                                }
+                            },
+                            isLastTip = page == courseContent.tips.size - 1
+                        )
+                    } else {
+                        // Show completion page
+                        CompletionPage(
+                            isCourseCompleted = isCourseCompleted,
+                            onMarkComplete = {
+                                if (!isCourseCompleted) {
+                                    viewModel.markCourseCompleted(courseTitle)
+                                    showCompletionDialog = true
+                                }
+                            },
+                            onPrevious = {
                                 scope.launch {
                                     pagerState.animateScrollToPage(page - 1)
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
-
-                Spacer(Modifier.height(16.dp))
 
                 // Page Indicators
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    repeat(courseContent.tips.size) { index ->
+                    repeat(courseContent.tips.size + 1) { index ->
                         val isSelected = pagerState.currentPage == index
                         Box(
                             modifier = Modifier
@@ -215,74 +276,6 @@ fun CourseDetailScreen(nav: NavController, courseTitle: String) {
                         )
                     }
                 }
-
-                Spacer(Modifier.height(24.dp))
-
-                // Additional Resources
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D))
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            "Additional Resources",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "• Practice these tips regularly to build good security habits",
-                            color = Color.LightGray,
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            "• Share this knowledge with family and friends",
-                            color = Color.LightGray,
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            "• Stay updated with the latest security threats",
-                            color = Color.LightGray,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(24.dp))
-                
-                // Mark as Complete Button
-                Button(
-                    onClick = { 
-                        if (!isCourseCompleted) {
-                            viewModel.markCourseCompleted(courseTitle)
-                            showCompletionDialog = true
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isCourseCompleted) Color(0xFF4CAF50) else Color(0xFF2196F3),
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isCourseCompleted) Icons.Default.CheckCircle else Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = if (isCourseCompleted) "Course Completed ✓" else "Mark as Complete",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                
-                Spacer(Modifier.height(24.dp))
             }
         }
     }
@@ -350,13 +343,14 @@ fun TipDetailPage(
     tipNumber: Int,
     totalTips: Int,
     onNext: () -> Unit,
-    onPrevious: () -> Unit
+    onPrevious: () -> Unit,
+    isLastTip: Boolean = false
 ) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(500.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .fillMaxSize()
+            .padding(16.dp)
+            .clip(RoundedCornerShape(16.dp))
             .background(
                 brush = if (tip.isImportant) {
                     Brush.verticalGradient(
@@ -372,10 +366,10 @@ fun TipDetailPage(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(24.dp)
         ) {
-            // Header with tip number and importance
+            // Header Section
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -449,7 +443,7 @@ fun TipDetailPage(
             Spacer(Modifier.height(16.dp))
             
             // Display Image if available
-            tip.imageResId?.let { imageRes ->
+            tip.imageUrl?.let { imageUrl ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -457,12 +451,49 @@ fun TipDetailPage(
                         .clip(RoundedCornerShape(8.dp)),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                 ) {
-                    Image(
-                        painter = painterResource(id = imageRes),
-                        contentDescription = tip.title,
+                    var isLoading by remember { mutableStateOf(true) }
+                    var hasError by remember { mutableStateOf(false) }
+                    
+                    Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = tip.title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            onLoading = { isLoading = true },
+                            onSuccess = { 
+                                isLoading = false
+                                hasError = false
+                            },
+                            onError = { 
+                                isLoading = false
+                                hasError = true
+                            }
+                        )
+                        
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color(0xFF4CAF50))
+                        }
+                        
+                        if (hasError) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    Icons.Default.BrokenImage,
+                                    contentDescription = "Failed to load",
+                                    tint = Color.Gray,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                                Text(
+                                    "Failed to load image",
+                                    color = Color.Gray,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+                    }
                 }
                 Spacer(Modifier.height(16.dp))
             }
@@ -486,7 +517,7 @@ fun TipDetailPage(
                                 
                                 setOnPreparedListener { mp ->
                                     mp.isLooping = false
-                                    start() // Auto-play the video
+                                    start()
                                 }
                                 
                                 setOnErrorListener { _, what, extra ->
@@ -509,7 +540,7 @@ fun TipDetailPage(
                 textAlign = TextAlign.Justify
             )
             
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
             
             // Action Steps
             if (tip.actionSteps.isNotEmpty()) {
@@ -519,7 +550,7 @@ fun TipDetailPage(
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(12.dp))
                 
                 tip.actionSteps.forEachIndexed { index, step ->
                     Row(
@@ -530,7 +561,7 @@ fun TipDetailPage(
                             "${index + 1}.",
                             color = Color(0xFF4CAF50),
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyMedium
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
@@ -541,9 +572,8 @@ fun TipDetailPage(
                         )
                     }
                 }
+                Spacer(Modifier.height(20.dp))
             }
-            
-            Spacer(Modifier.height(24.dp))
             
             // Navigation Buttons
             Row(
@@ -551,83 +581,210 @@ fun TipDetailPage(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // Previous Button
-                Box(
+                Button(
+                    onClick = onPrevious,
+                    enabled = tipNumber > 1,
                     modifier = Modifier
-                        .weight(0.45f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            brush = if (tipNumber > 1) {
-                                Brush.horizontalGradient(
-                                    colors = listOf(Color(0xFF4CAF50), Color(0xFF66BB6A))
-                                )
-                            } else {
-                                Brush.horizontalGradient(
-                                    colors = listOf(Color(0xFF424242), Color(0xFF616161))
-                                )
-                            }
-                        )
-                        .clickable(enabled = tipNumber > 1) { onPrevious() },
-                    contentAlignment = Alignment.Center
+                        .weight(0.48f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50),
+                        disabledContainerColor = Color(0xFF424242)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = "Previous",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Previous")
+                }
+                
+                Spacer(Modifier.width(12.dp))
+                
+                // Next Button
+                Button(
+                    onClick = onNext,
+                    modifier = Modifier
+                        .weight(0.48f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(if (isLastTip) "Complete" else "Next")
+                    Spacer(Modifier.width(8.dp))
+                    Icon(
+                        if (isLastTip) Icons.Default.CheckCircle else Icons.Default.ArrowForward,
+                        contentDescription = if (isLastTip) "Complete" else "Next",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun CompletionPage(
+    isCourseCompleted: Boolean,
+    onMarkComplete: () -> Unit,
+    onPrevious: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF1B5E20), Color(0xFF2E7D32))
+                )
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.height(40.dp))
+            
+            // Completion Content
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    if (isCourseCompleted) Icons.Default.CheckCircle else Icons.Default.EmojiEvents,
+                    contentDescription = null,
+                    tint = Color(0xFF4CAF50),
+                    modifier = Modifier.size(120.dp)
+                )
+                
+                Spacer(Modifier.height(24.dp))
+                
+                Text(
+                    if (isCourseCompleted) "Course Completed!" else "Ready to Complete?",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(Modifier.height(16.dp))
+                
+                Text(
+                    if (isCourseCompleted) 
+                        "Great job! You've mastered this course and strengthened your cybersecurity knowledge." 
+                    else 
+                        "You've reviewed all the tips. Mark this course as complete to track your progress.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.LightGray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                
+                Spacer(Modifier.height(32.dp))
+                
+                // Additional Resources Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp)
                     ) {
-                        Icon(
-                            Icons.Default.ArrowBack, 
-                            contentDescription = "Previous", 
-                            modifier = Modifier.size(18.dp),
-                            tint = Color.White
-                        )
-                        Spacer(Modifier.width(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.Lightbulb,
+                                contentDescription = null,
+                                tint = Color(0xFF4CAF50),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                "Keep Learning",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
                         Text(
-                            "Previous",
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelLarge
+                            "• Practice these tips regularly to build good security habits",
+                            color = Color.LightGray,
+                            fontSize = 14.sp
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "• Share this knowledge with family and friends",
+                            color = Color.LightGray,
+                            fontSize = 14.sp
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "• Stay updated with the latest security threats",
+                            color = Color.LightGray,
+                            fontSize = 14.sp
                         )
                     }
                 }
-                
-                Spacer(Modifier.width(16.dp))
-                
-                // Next Button
-                Box(
-                    modifier = Modifier
-                        .weight(0.45f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            brush = if (tipNumber < totalTips) {
-                                Brush.horizontalGradient(
-                                    colors = listOf(Color(0xFF4CAF50), Color(0xFF66BB6A))
-                                )
-                            } else {
-                                Brush.horizontalGradient(
-                                    colors = listOf(Color(0xFF424242), Color(0xFF616161))
-                                )
-                            }
-                        )
-                        .clickable(enabled = tipNumber < totalTips) { onNext() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+            }
+            
+            // Bottom Buttons
+            Column {
+                if (!isCourseCompleted) {
+                    Button(
+                        onClick = onMarkComplete,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4CAF50)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(
-                            "Next",
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelLarge
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Icon(
-                            Icons.Default.ArrowForward, 
-                            contentDescription = "Next", 
-                            modifier = Modifier.size(18.dp),
-                            tint = Color.White
+                        Text(
+                            "Mark as Complete",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
                     }
+                    Spacer(Modifier.height(12.dp))
+                }
+                
+                Button(
+                    onClick = onPrevious,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF424242)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = "Previous",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Review Tips")
                 }
             }
         }
@@ -717,15 +874,14 @@ data class CourseTip(
     val isImportant: Boolean = false,
     val detailedContent: String = "",
     val actionSteps: List<String> = emptyList(),
-    val imageResId: Int? = null, // Optional image resource from drawable
-    val videoUri: String? = null // Optional video URI (can be asset:// or raw resource)
+    val imageUrl: String? = null, // Optional image URL from cloud storage
+    val videoUri: String? = null // Optional video URI (can be cloud URL or raw resource)
 )
 
 data class CourseContent(
     val title: String,
     val description: String,
     val level: String,
-    val rating: Float,
     val tips: List<CourseTip>,
     val isNew: Boolean = false
 )

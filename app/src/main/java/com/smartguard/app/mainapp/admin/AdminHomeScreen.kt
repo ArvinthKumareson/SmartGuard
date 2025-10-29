@@ -52,6 +52,10 @@ fun AdminHomeScreen(nav: NavController, onLogout: () -> Unit) {
                 nav.navigate("admin_feedback")
             }
 
+            AdminFeatureCard("Manage Courses") {
+                nav.navigate("admin_courses")
+            }
+
         }
     }
 }

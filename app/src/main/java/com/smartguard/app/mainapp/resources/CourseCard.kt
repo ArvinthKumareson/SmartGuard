@@ -21,8 +21,9 @@ fun CourseCard(course: ScamCourse, onClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(course.title, style = MaterialTheme.typography.titleMedium, color = Color.White)
-            Spacer(Modifier.height(4.dp))
-            Text("⭐ ${course.rating}", color = Color.LightGray)
+            Spacer(Modifier.height(8.dp))
+            Text(course.description, style = MaterialTheme.typography.bodySmall, color = Color.LightGray, maxLines = 2)
+            Spacer(Modifier.height(8.dp))
             if (course.isNew) {
                 Text("New", color = Color(0xFF6EDE5B), style = MaterialTheme.typography.labelSmall)
             }

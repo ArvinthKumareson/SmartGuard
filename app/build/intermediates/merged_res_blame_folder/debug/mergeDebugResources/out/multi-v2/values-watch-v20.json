@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.smartguard.app-mergeDebugResources-80:/values-watch-v20/values-watch-v20.xml",
+            "outputFile": "com.smartguard.app-mergeDebugResources-81:/values-watch-v20/values-watch-v20.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ugots\\.gradle\\caches\\8.13\\transforms\\e5bea9b974b148c53884ade2bba448fc\\transformed\\appcompat-1.6.1\\res\\values-watch-v20\\values-watch-v20.xml",

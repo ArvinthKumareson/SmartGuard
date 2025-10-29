@@ -12,7 +12,6 @@ import com.smartguard.app.data.UserCourseProgress
 import com.smartguard.app.mainapp.user.CourseContent
 import com.smartguard.app.mainapp.user.CourseTip
 import com.smartguard.app.model.ScamCourse
-import com.smartguard.app.util.MediaResourceHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -84,8 +83,22 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
             if (!success) {
                 // If failed, reload to get correct state
                 loadProgress()
+            } else {
+                // Force refresh to ensure UI updates everywhere
+                refreshProgress()
             }
         }
+    }
+    
+    fun refreshProgress() {
+        // Trigger a manual refresh of progress
+        loadProgress()
+    }
+    
+    fun refresh() {
+        // Refresh both courses and progress
+        loadCourses()
+        loadProgress()
     }
     
     fun isCourseCompleted(courseTitle: String): Boolean {
@@ -109,7 +122,6 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
                 title = fbCourse.title,
                 description = fbCourse.description,
                 level = fbCourse.level,
-                rating = fbCourse.rating,
                 isNew = fbCourse.isNew
             )
         }
@@ -123,7 +135,6 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
             title = fbCourse.title,
             description = fbCourse.description,
             level = fbCourse.level,
-            rating = fbCourse.rating,
             tips = fbCourse.tips.map { fbTip ->
                 CourseTip(
                     title = fbTip.title,
@@ -132,22 +143,8 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
                     isImportant = fbTip.isImportant,
                     detailedContent = fbTip.detailedContent,
                     actionSteps = fbTip.actionSteps,
-                    imageResId = fbTip.imageUrl?.let { 
-                        // Try to parse as int first (backward compatibility)
-                        it.toIntOrNull() ?: 
-                        // Otherwise treat as resource name and look it up
-                        MediaResourceHelper.getImageResourceId(context, it)?.toIntOrNull()
-                    },
-                    videoUri = fbTip.videoUrl?.let {
-                        when {
-                            // Cloud URL from Firebase Storage
-                            it.startsWith("http://") || it.startsWith("https://") -> it
-                            // Local resource URI
-                            it.startsWith("android.resource://") -> it
-                            // Resource name - look it up
-                            else -> MediaResourceHelper.getVideoUriByName(context, it)
-                        }
-                    }
+                    imageUrl = fbTip.imageUrl, // Pass URL directly for cloud storage
+                    videoUri = fbTip.videoUrl // Pass URL directly for cloud storage
                 )
             },
             isNew = fbCourse.isNew

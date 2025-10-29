@@ -41,7 +41,7 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR IGNORE INTO `scan_records` (`id`,`message`,`matchedKeywords`,`sourceApp`,`timestamp`,`userId`) VALUES (nullif(?, 0),?,?,?,?,?)";
+        return "INSERT OR IGNORE INTO `scan_records` (`id`,`message`,`matchedKeywords`,`keywordExplanations`,`sourceApp`,`timestamp`,`userId`,`senderName`,`conversationTitle`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -50,13 +50,28 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
         statement.bindLong(1, entity.getId());
         statement.bindString(2, entity.getMessage());
         statement.bindString(3, entity.getMatchedKeywords());
-        if (entity.getSourceApp() == null) {
+        if (entity.getKeywordExplanations() == null) {
           statement.bindNull(4);
         } else {
-          statement.bindString(4, entity.getSourceApp());
+          statement.bindString(4, entity.getKeywordExplanations());
         }
-        statement.bindLong(5, entity.getTimestamp());
-        statement.bindString(6, entity.getUserId());
+        if (entity.getSourceApp() == null) {
+          statement.bindNull(5);
+        } else {
+          statement.bindString(5, entity.getSourceApp());
+        }
+        statement.bindLong(6, entity.getTimestamp());
+        statement.bindString(7, entity.getUserId());
+        if (entity.getSenderName() == null) {
+          statement.bindNull(8);
+        } else {
+          statement.bindString(8, entity.getSenderName());
+        }
+        if (entity.getConversationTitle() == null) {
+          statement.bindNull(9);
+        } else {
+          statement.bindString(9, entity.getConversationTitle());
+        }
       }
     };
     this.__preparedStmtOfClearAllForUser = new SharedSQLiteStatement(__db) {
@@ -128,9 +143,12 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
           final int _cursorIndexOfMessage = CursorUtil.getColumnIndexOrThrow(_cursor, "message");
           final int _cursorIndexOfMatchedKeywords = CursorUtil.getColumnIndexOrThrow(_cursor, "matchedKeywords");
+          final int _cursorIndexOfKeywordExplanations = CursorUtil.getColumnIndexOrThrow(_cursor, "keywordExplanations");
           final int _cursorIndexOfSourceApp = CursorUtil.getColumnIndexOrThrow(_cursor, "sourceApp");
           final int _cursorIndexOfTimestamp = CursorUtil.getColumnIndexOrThrow(_cursor, "timestamp");
           final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfSenderName = CursorUtil.getColumnIndexOrThrow(_cursor, "senderName");
+          final int _cursorIndexOfConversationTitle = CursorUtil.getColumnIndexOrThrow(_cursor, "conversationTitle");
           final List<ScanRecordEntity> _result = new ArrayList<ScanRecordEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final ScanRecordEntity _item;
@@ -140,6 +158,12 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
             _tmpMessage = _cursor.getString(_cursorIndexOfMessage);
             final String _tmpMatchedKeywords;
             _tmpMatchedKeywords = _cursor.getString(_cursorIndexOfMatchedKeywords);
+            final String _tmpKeywordExplanations;
+            if (_cursor.isNull(_cursorIndexOfKeywordExplanations)) {
+              _tmpKeywordExplanations = null;
+            } else {
+              _tmpKeywordExplanations = _cursor.getString(_cursorIndexOfKeywordExplanations);
+            }
             final String _tmpSourceApp;
             if (_cursor.isNull(_cursorIndexOfSourceApp)) {
               _tmpSourceApp = null;
@@ -150,7 +174,19 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
             _tmpTimestamp = _cursor.getLong(_cursorIndexOfTimestamp);
             final String _tmpUserId;
             _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
-            _item = new ScanRecordEntity(_tmpId,_tmpMessage,_tmpMatchedKeywords,_tmpSourceApp,_tmpTimestamp,_tmpUserId);
+            final String _tmpSenderName;
+            if (_cursor.isNull(_cursorIndexOfSenderName)) {
+              _tmpSenderName = null;
+            } else {
+              _tmpSenderName = _cursor.getString(_cursorIndexOfSenderName);
+            }
+            final String _tmpConversationTitle;
+            if (_cursor.isNull(_cursorIndexOfConversationTitle)) {
+              _tmpConversationTitle = null;
+            } else {
+              _tmpConversationTitle = _cursor.getString(_cursorIndexOfConversationTitle);
+            }
+            _item = new ScanRecordEntity(_tmpId,_tmpMessage,_tmpMatchedKeywords,_tmpKeywordExplanations,_tmpSourceApp,_tmpTimestamp,_tmpUserId,_tmpSenderName,_tmpConversationTitle);
             _result.add(_item);
           }
           return _result;
@@ -216,9 +252,12 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
           final int _cursorIndexOfMessage = CursorUtil.getColumnIndexOrThrow(_cursor, "message");
           final int _cursorIndexOfMatchedKeywords = CursorUtil.getColumnIndexOrThrow(_cursor, "matchedKeywords");
+          final int _cursorIndexOfKeywordExplanations = CursorUtil.getColumnIndexOrThrow(_cursor, "keywordExplanations");
           final int _cursorIndexOfSourceApp = CursorUtil.getColumnIndexOrThrow(_cursor, "sourceApp");
           final int _cursorIndexOfTimestamp = CursorUtil.getColumnIndexOrThrow(_cursor, "timestamp");
           final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfSenderName = CursorUtil.getColumnIndexOrThrow(_cursor, "senderName");
+          final int _cursorIndexOfConversationTitle = CursorUtil.getColumnIndexOrThrow(_cursor, "conversationTitle");
           final List<ScanRecordEntity> _result = new ArrayList<ScanRecordEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final ScanRecordEntity _item;
@@ -228,6 +267,12 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
             _tmpMessage = _cursor.getString(_cursorIndexOfMessage);
             final String _tmpMatchedKeywords;
             _tmpMatchedKeywords = _cursor.getString(_cursorIndexOfMatchedKeywords);
+            final String _tmpKeywordExplanations;
+            if (_cursor.isNull(_cursorIndexOfKeywordExplanations)) {
+              _tmpKeywordExplanations = null;
+            } else {
+              _tmpKeywordExplanations = _cursor.getString(_cursorIndexOfKeywordExplanations);
+            }
             final String _tmpSourceApp;
             if (_cursor.isNull(_cursorIndexOfSourceApp)) {
               _tmpSourceApp = null;
@@ -238,7 +283,19 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
             _tmpTimestamp = _cursor.getLong(_cursorIndexOfTimestamp);
             final String _tmpUserId;
             _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
-            _item = new ScanRecordEntity(_tmpId,_tmpMessage,_tmpMatchedKeywords,_tmpSourceApp,_tmpTimestamp,_tmpUserId);
+            final String _tmpSenderName;
+            if (_cursor.isNull(_cursorIndexOfSenderName)) {
+              _tmpSenderName = null;
+            } else {
+              _tmpSenderName = _cursor.getString(_cursorIndexOfSenderName);
+            }
+            final String _tmpConversationTitle;
+            if (_cursor.isNull(_cursorIndexOfConversationTitle)) {
+              _tmpConversationTitle = null;
+            } else {
+              _tmpConversationTitle = _cursor.getString(_cursorIndexOfConversationTitle);
+            }
+            _item = new ScanRecordEntity(_tmpId,_tmpMessage,_tmpMatchedKeywords,_tmpKeywordExplanations,_tmpSourceApp,_tmpTimestamp,_tmpUserId,_tmpSenderName,_tmpConversationTitle);
             _result.add(_item);
           }
           return _result;
@@ -276,9 +333,12 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
           final int _cursorIndexOfMessage = CursorUtil.getColumnIndexOrThrow(_cursor, "message");
           final int _cursorIndexOfMatchedKeywords = CursorUtil.getColumnIndexOrThrow(_cursor, "matchedKeywords");
+          final int _cursorIndexOfKeywordExplanations = CursorUtil.getColumnIndexOrThrow(_cursor, "keywordExplanations");
           final int _cursorIndexOfSourceApp = CursorUtil.getColumnIndexOrThrow(_cursor, "sourceApp");
           final int _cursorIndexOfTimestamp = CursorUtil.getColumnIndexOrThrow(_cursor, "timestamp");
           final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfSenderName = CursorUtil.getColumnIndexOrThrow(_cursor, "senderName");
+          final int _cursorIndexOfConversationTitle = CursorUtil.getColumnIndexOrThrow(_cursor, "conversationTitle");
           final List<ScanRecordEntity> _result = new ArrayList<ScanRecordEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final ScanRecordEntity _item;
@@ -288,6 +348,12 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
             _tmpMessage = _cursor.getString(_cursorIndexOfMessage);
             final String _tmpMatchedKeywords;
             _tmpMatchedKeywords = _cursor.getString(_cursorIndexOfMatchedKeywords);
+            final String _tmpKeywordExplanations;
+            if (_cursor.isNull(_cursorIndexOfKeywordExplanations)) {
+              _tmpKeywordExplanations = null;
+            } else {
+              _tmpKeywordExplanations = _cursor.getString(_cursorIndexOfKeywordExplanations);
+            }
             final String _tmpSourceApp;
             if (_cursor.isNull(_cursorIndexOfSourceApp)) {
               _tmpSourceApp = null;
@@ -298,7 +364,19 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
             _tmpTimestamp = _cursor.getLong(_cursorIndexOfTimestamp);
             final String _tmpUserId;
             _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
-            _item = new ScanRecordEntity(_tmpId,_tmpMessage,_tmpMatchedKeywords,_tmpSourceApp,_tmpTimestamp,_tmpUserId);
+            final String _tmpSenderName;
+            if (_cursor.isNull(_cursorIndexOfSenderName)) {
+              _tmpSenderName = null;
+            } else {
+              _tmpSenderName = _cursor.getString(_cursorIndexOfSenderName);
+            }
+            final String _tmpConversationTitle;
+            if (_cursor.isNull(_cursorIndexOfConversationTitle)) {
+              _tmpConversationTitle = null;
+            } else {
+              _tmpConversationTitle = _cursor.getString(_cursorIndexOfConversationTitle);
+            }
+            _item = new ScanRecordEntity(_tmpId,_tmpMessage,_tmpMatchedKeywords,_tmpKeywordExplanations,_tmpSourceApp,_tmpTimestamp,_tmpUserId,_tmpSenderName,_tmpConversationTitle);
             _result.add(_item);
           }
           return _result;
@@ -335,9 +413,12 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
           final int _cursorIndexOfMessage = CursorUtil.getColumnIndexOrThrow(_cursor, "message");
           final int _cursorIndexOfMatchedKeywords = CursorUtil.getColumnIndexOrThrow(_cursor, "matchedKeywords");
+          final int _cursorIndexOfKeywordExplanations = CursorUtil.getColumnIndexOrThrow(_cursor, "keywordExplanations");
           final int _cursorIndexOfSourceApp = CursorUtil.getColumnIndexOrThrow(_cursor, "sourceApp");
           final int _cursorIndexOfTimestamp = CursorUtil.getColumnIndexOrThrow(_cursor, "timestamp");
           final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfSenderName = CursorUtil.getColumnIndexOrThrow(_cursor, "senderName");
+          final int _cursorIndexOfConversationTitle = CursorUtil.getColumnIndexOrThrow(_cursor, "conversationTitle");
           final List<ScanRecordEntity> _result = new ArrayList<ScanRecordEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final ScanRecordEntity _item;
@@ -347,6 +428,12 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
             _tmpMessage = _cursor.getString(_cursorIndexOfMessage);
             final String _tmpMatchedKeywords;
             _tmpMatchedKeywords = _cursor.getString(_cursorIndexOfMatchedKeywords);
+            final String _tmpKeywordExplanations;
+            if (_cursor.isNull(_cursorIndexOfKeywordExplanations)) {
+              _tmpKeywordExplanations = null;
+            } else {
+              _tmpKeywordExplanations = _cursor.getString(_cursorIndexOfKeywordExplanations);
+            }
             final String _tmpSourceApp;
             if (_cursor.isNull(_cursorIndexOfSourceApp)) {
               _tmpSourceApp = null;
@@ -357,7 +444,19 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
             _tmpTimestamp = _cursor.getLong(_cursorIndexOfTimestamp);
             final String _tmpUserId;
             _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
-            _item = new ScanRecordEntity(_tmpId,_tmpMessage,_tmpMatchedKeywords,_tmpSourceApp,_tmpTimestamp,_tmpUserId);
+            final String _tmpSenderName;
+            if (_cursor.isNull(_cursorIndexOfSenderName)) {
+              _tmpSenderName = null;
+            } else {
+              _tmpSenderName = _cursor.getString(_cursorIndexOfSenderName);
+            }
+            final String _tmpConversationTitle;
+            if (_cursor.isNull(_cursorIndexOfConversationTitle)) {
+              _tmpConversationTitle = null;
+            } else {
+              _tmpConversationTitle = _cursor.getString(_cursorIndexOfConversationTitle);
+            }
+            _item = new ScanRecordEntity(_tmpId,_tmpMessage,_tmpMatchedKeywords,_tmpKeywordExplanations,_tmpSourceApp,_tmpTimestamp,_tmpUserId,_tmpSenderName,_tmpConversationTitle);
             _result.add(_item);
           }
           return _result;

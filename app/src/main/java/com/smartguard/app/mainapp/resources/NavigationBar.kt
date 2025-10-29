@@ -4,7 +4,6 @@ package com.smartguard.app.mainapp.resources
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -17,11 +16,6 @@ fun SmartGuardBottomBar(nav: NavController, currentRoute: String) {
             icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
             selected = currentRoute == "home",
             onClick = { nav.navigate("home") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-            selected = currentRoute == "search",
-            onClick = { nav.navigate("search") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },

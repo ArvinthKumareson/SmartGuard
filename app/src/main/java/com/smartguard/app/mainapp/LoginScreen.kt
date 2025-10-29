@@ -42,8 +42,8 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = viewModel()) {
                     painter = painterResource(id = R.drawable.logo_smartguard),
                     contentDescription = "SmartGuard Logo",
                     modifier = Modifier
-                        .size(190.dp)
-                        .padding(top = 32.dp)
+                        .size(265.dp)
+                        .padding(top = 5.dp)
                         .align(Alignment.TopCenter),
                     contentScale = ContentScale.Fit
                 )
@@ -132,9 +132,22 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = viewModel()) {
                         onClick = {
                             Log.d("Login", "Calling vm.login with email=$email")
                             if (isSignup) {
-                                vm.signup(email.trim(), password, name) { success ->
-                                    if (success) nav.navigate("home")
-                                    else errorMessage = "Signup failed"
+                                val trimmedEmail = email.trim()
+                                val isValidEmail = Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()
+                                if (!isValidEmail) {
+                                    errorMessage = "Invalid email format"
+                                    return@GradientButton
+                                }
+                                if (password.length < 6) {
+                                    errorMessage = "Password must be at least 6 characters"
+                                    return@GradientButton
+                                }
+                                vm.signup(trimmedEmail, password, name) { success, err ->
+                                    if (success) {
+                                        nav.navigate("home")
+                                    } else {
+                                        errorMessage = err ?: "Signup failed"
+                                    }
                                 }
                             } else {
                                 val isValidEmail =

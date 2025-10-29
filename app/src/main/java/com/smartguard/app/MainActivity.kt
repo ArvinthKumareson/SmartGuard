@@ -30,13 +30,18 @@ import com.google.gson.reflect.TypeToken
 import com.smartguard.app.data.EncryptedKeywords
 import com.smartguard.app.model.QuizResult
 import com.smartguard.app.mainapp.*
+import com.smartguard.app.mainapp.admin.AdminCourseEditorScreen
+import com.smartguard.app.mainapp.admin.AdminCourseManagerScreen
 import com.smartguard.app.mainapp.admin.AdminFeedbackScreen
 import com.smartguard.app.mainapp.admin.AdminHomeScreen
 import com.smartguard.app.mainapp.admin.AdminKeywordManagerScreen
 import com.smartguard.app.mainapp.admin.AdminQuizManagerScreen
+import com.smartguard.app.mainapp.admin.AdminScamReportsScreen
 import com.smartguard.app.mainapp.quiz.QuizScreen
 import com.smartguard.app.mainapp.theme.SmartGuardTheme
 import com.smartguard.app.mainapp.user.*
+import com.smartguard.app.mainapp.setup.NotificationPermissionScreen
+import com.smartguard.app.utils.PermissionUtils
 import com.smartguard.app.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -44,7 +49,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Request runtime permissions
+        // Request runtime permissions
         val permissions = mutableListOf(
             Manifest.permission.RECEIVE_SMS,
             Manifest.permission.READ_SMS
@@ -59,7 +64,7 @@ class MainActivity : ComponentActivity() {
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), 100)
         }
 
-        // ✅ Sync keywords safely
+        // Sync keywords safely (one-time initial sync)
         lifecycleScope.launch {
             try {
                 EncryptedKeywords.syncFromFirestore(applicationContext)
@@ -68,6 +73,9 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Start real-time keyword sync
+        EncryptedKeywords.startRealtimeSync(applicationContext)
+
         setContent {
             SmartGuardTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
@@ -75,6 +83,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Stop keyword sync listener to prevent memory leaks
+        EncryptedKeywords.stopRealtimeSync()
     }
 }
 
@@ -120,13 +134,18 @@ fun AppNavigation() {
             composable("home") { HomeScreen(navController, authViewModel) }
             composable("login") { LoginScreen(navController, authViewModel) }
             composable("profile") { ProfileScreen(navController, authViewModel) }
+            composable("account_settings") { AccountSettingsScreen(navController, authViewModel) }
+            composable("permissions_settings") { PermissionsSettingsScreen(navController) }
             composable("tips") { CourseDashboardScreen(navController) }
+            composable("courses") { CourseDashboardScreen(navController) }
             composable("quiz") { QuizScreen(navController) }
             composable("scam chat") { ScamChatGameScreen(navController) }
             composable("website_checker") { WebsiteCheckerScreen(navController) }
             composable("scan_history") { ScanHistoryScreen(navController) }
             composable("user_feedback") { UserFeedbackScreen(navController) }
+            composable("scam_reports") { ScamReportsScreen(navController) }
             composable("history") { HistoryScreen(navController) }
+            composable("notification_permission") { NotificationPermissionScreen(navController) }
             
             composable(
                 route = "courseDetail/{courseTitle}",
@@ -148,6 +167,19 @@ fun AppNavigation() {
             composable("admin_feedback") {
                 AdminFeedbackScreen(navController)
             }
+            composable("admin_scam_reports") {
+                AdminScamReportsScreen(navController)
+            }
+            composable("admin_courses") {
+                AdminCourseManagerScreen(navController)
+            }
+            composable(
+                route = "admin_course_editor/{courseTitle}",
+                arguments = listOf(navArgument("courseTitle") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val courseTitle = backStackEntry.arguments?.getString("courseTitle")
+                AdminCourseEditorScreen(navController, courseTitle)
+            }
 
             composable(
                 route = "quizOverview?resultsJson={resultsJson}",
@@ -161,7 +193,7 @@ fun AppNavigation() {
                     Log.e("SmartGuard", "Failed to parse quiz results", e)
                     emptyList()
                 }
-                QuizOverviewScreen(results) {
+                QuizOverviewScreen(navController, results) {
                     navController.popBackStack()
                 }
             }

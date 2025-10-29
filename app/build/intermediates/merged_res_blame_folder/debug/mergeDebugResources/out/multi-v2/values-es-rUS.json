@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.smartguard.app-mergeDebugResources-80:/values-es-rUS/values-es-rUS.xml",
+            "outputFile": "com.smartguard.app-mergeDebugResources-81:/values-es-rUS/values-es-rUS.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ugots\\.gradle\\caches\\8.13\\transforms\\33753fc75d189bf3f2869c3b1760628f\\transformed\\jetified-play-services-base-18.0.1\\res\\values-es-rUS\\values.xml",

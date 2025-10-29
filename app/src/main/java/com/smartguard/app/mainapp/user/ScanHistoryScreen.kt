@@ -50,7 +50,8 @@ fun ScanHistoryScreen(nav: NavController) {
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E))
             )
-        }
+        },
+        bottomBar = { com.smartguard.app.mainapp.resources.SmartGuardBottomBar(nav, "scan_history") }
     ) { padding ->
         Box(
             modifier = Modifier

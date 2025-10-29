@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.smartguard.app-mergeDebugResources-80:/values-is/values-is.xml",
+            "outputFile": "com.smartguard.app-mergeDebugResources-81:/values-is/values-is.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ugots\\.gradle\\caches\\8.13\\transforms\\07aa8a6d26efa55bd030d26a5b20dbe8\\transformed\\browser-1.4.0\\res\\values-is\\values-is.xml",

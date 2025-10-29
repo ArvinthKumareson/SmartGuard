@@ -16,6 +16,7 @@ import com.smartguard.app.viewmodel.KeywordViewModel
 @Composable
 fun AdminKeywordManagerScreen(nav: NavController, vm: KeywordViewModel = viewModel()) {
     var newKeyword by remember { mutableStateOf("") }
+    var newExplanation by remember { mutableStateOf("") }
     val keywords by vm.keywords.collectAsState()
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -25,14 +26,33 @@ fun AdminKeywordManagerScreen(nav: NavController, vm: KeywordViewModel = viewMod
         TextField(
             value = newKeyword,
             onValueChange = { newKeyword = it },
-            label = { Text("Keyword") }
+            label = { Text("Keyword") },
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Button(onClick = {
-            vm.addKeyword(newKeyword.trim())
-            newKeyword = ""
-        }) {
-            Text("Add")
+        Spacer(Modifier.height(8.dp))
+
+        TextField(
+            value = newExplanation,
+            onValueChange = { newExplanation = it },
+            label = { Text("Why is this a scam indicator?") },
+            placeholder = { Text("e.g., Scammers use this to create urgency") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 3,
+            maxLines = 5
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                vm.addKeyword(newKeyword.trim(), newExplanation.trim())
+                newKeyword = ""
+                newExplanation = ""
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Add Keyword")
         }
 
         Spacer(Modifier.height(24.dp))
@@ -40,14 +60,26 @@ fun AdminKeywordManagerScreen(nav: NavController, vm: KeywordViewModel = viewMod
         Spacer(Modifier.height(8.dp))
 
         LazyColumn {
-            items(keywords, key = { it.first }) { (id, value) ->
+            items(keywords, key = { it.id }) { keywordData ->
                 Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(value, style = MaterialTheme.typography.bodyLarge)
-                        IconButton(onClick = { vm.deleteKeyword(id) }) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                keywordData.value,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                keywordData.explanation,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        IconButton(onClick = { vm.deleteKeyword(keywordData.id) }) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete")
                         }
                     }

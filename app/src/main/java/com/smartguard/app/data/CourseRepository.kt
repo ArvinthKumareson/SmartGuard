@@ -10,7 +10,6 @@ data class FirebaseCourseContent(
     val title: String = "",
     val description: String = "",
     val level: String = "",
-    val rating: Float = 0f,
     val isNew: Boolean = false,
     val tips: List<FirebaseCourseTip> = emptyList()
 )
@@ -130,6 +129,125 @@ object CourseRepository {
             Log.d("CourseRepository", "Successfully uploaded ${courses.size} courses")
         } catch (e: Exception) {
             Log.e("CourseRepository", "Error uploading courses", e)
+        }
+    }
+    
+    // ADMIN FUNCTIONS
+    
+    // Create a new course
+    suspend fun createCourse(course: FirebaseCourseContent): Boolean {
+        return try {
+            val docId = course.title.replace(" ", "_").lowercase()
+            firestore.collection(COURSES_COLLECTION)
+                .document(docId)
+                .set(course)
+                .await()
+            Log.d("CourseRepository", "Created course: ${course.title}")
+            true
+        } catch (e: Exception) {
+            Log.e("CourseRepository", "Error creating course", e)
+            false
+        }
+    }
+    
+    // Update an existing course
+    suspend fun updateCourse(oldTitle: String, course: FirebaseCourseContent): Boolean {
+        return try {
+            // Try to find existing document - old courses may not be lowercase
+            val possibleDocIds = listOf(
+                oldTitle.replace(" ", "_"),           // Original format (mixed case)
+                oldTitle.replace(" ", "_").lowercase() // New format (lowercase)
+            )
+            
+            Log.d("CourseRepository", "Updating course: oldTitle=$oldTitle, newTitle=${course.title}, tips count=${course.tips.size}")
+            
+            // Find which document actually exists
+            var existingDocId: String? = null
+            for (docId in possibleDocIds) {
+                val doc = firestore.collection(COURSES_COLLECTION)
+                    .document(docId)
+                    .get()
+                    .await()
+                if (doc.exists()) {
+                    existingDocId = docId
+                    Log.d("CourseRepository", "Found existing document: $docId")
+                    break
+                }
+            }
+            
+            // Use lowercase for new document ID
+            val newDocId = course.title.replace(" ", "_").lowercase()
+            
+            // If title changed or we need to migrate to lowercase, handle accordingly
+            if (existingDocId != null && existingDocId != newDocId) {
+                // Delete old document (title changed or migrating to lowercase)
+                firestore.collection(COURSES_COLLECTION).document(existingDocId).delete().await()
+                Log.d("CourseRepository", "Deleted old document: $existingDocId")
+            }
+            
+            // Set the course data (create or update)
+            firestore.collection(COURSES_COLLECTION)
+                .document(newDocId)
+                .set(course)
+                .await()
+                
+            Log.d("CourseRepository", "Successfully updated course: ${course.title} with ${course.tips.size} tips at $newDocId")
+            true
+        } catch (e: Exception) {
+            Log.e("CourseRepository", "Error updating course", e)
+            false
+        }
+    }
+    
+    // Delete a course
+    suspend fun deleteCourse(courseTitle: String): Boolean {
+        return try {
+            // Try to find existing document - old courses may not be lowercase
+            val possibleDocIds = listOf(
+                courseTitle.replace(" ", "_"),           // Original format (mixed case)
+                courseTitle.replace(" ", "_").lowercase() // New format (lowercase)
+            )
+            
+            // Find and delete whichever document exists
+            var deleted = false
+            for (docId in possibleDocIds) {
+                val doc = firestore.collection(COURSES_COLLECTION)
+                    .document(docId)
+                    .get()
+                    .await()
+                if (doc.exists()) {
+                    firestore.collection(COURSES_COLLECTION)
+                        .document(docId)
+                        .delete()
+                        .await()
+                    Log.d("CourseRepository", "Deleted course: $courseTitle (docId: $docId)")
+                    deleted = true
+                    break
+                }
+            }
+            
+            if (!deleted) {
+                Log.w("CourseRepository", "Course not found for deletion: $courseTitle")
+            }
+            
+            true
+        } catch (e: Exception) {
+            Log.e("CourseRepository", "Error deleting course", e)
+            false
+        }
+    }
+    
+    // Get course by document ID
+    suspend fun getCourseById(docId: String): FirebaseCourseContent? {
+        return try {
+            val doc = firestore.collection(COURSES_COLLECTION)
+                .document(docId)
+                .get()
+                .await()
+            doc.toObject(FirebaseCourseContent::class.java)
+        } catch (e: Exception) {
+            Log.e("CourseRepository", "Error fetching course by ID: $docId", e)
+            null
         }
     }
 }

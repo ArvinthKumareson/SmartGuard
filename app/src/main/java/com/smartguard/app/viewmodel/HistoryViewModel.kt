@@ -18,14 +18,18 @@ import kotlinx.coroutines.tasks.await
 data class ScanResult(
     val message: String,
     val matchedKeywords: List<String>,
+    val keywordExplanations: Map<String, String> = emptyMap(),
     val sourceApp: String,
-    val timestamp: Long
+    val timestamp: Long,
+    val senderName: String? = null,
+    val conversationTitle: String? = null
 )
 
 class HistoryViewModel(app: Application) : AndroidViewModel(app) {
 
     private val db = AppDatabase.getInstance(app.applicationContext)
-    private val engine = DetectionEngine(EncryptedKeywords.getKeywords(app.applicationContext))
+    private val appContext = app.applicationContext
+    private val engine = DetectionEngine(appContext)
     private val firestore = FirebaseFirestore.getInstance()
 
     // Local scan history scoped to current user
@@ -41,17 +45,31 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
                     ?.filter { it.isNotEmpty() }
                     ?: emptyList()
 
+                val explanations = try {
+                    entity.keywordExplanations?.let {
+                        com.google.gson.Gson().fromJson<Map<String, String>>(
+                            it,
+                            object : com.google.gson.reflect.TypeToken<Map<String, String>>() {}.type
+                        )
+                    } ?: emptyMap()
+                } catch (e: Exception) {
+                    emptyMap()
+                }
+
                 ScanResult(
                     message = entity.message.ifBlank { "No message" },
                     matchedKeywords = safeKeywords,
+                    keywordExplanations = explanations,
                     sourceApp = entity.sourceApp ?: "Unknown",
-                    timestamp = entity.timestamp
+                    timestamp = entity.timestamp,
+                    senderName = entity.senderName,
+                    conversationTitle = entity.conversationTitle
                 )
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // ✅ Cloud scan history from Firestore
+    // Cloud scan history from Firestore
     val cloudHistory: StateFlow<List<ScanResult>> = flow {
         try {
             val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@flow
@@ -63,6 +81,17 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
 
             val results = snapshot.documents.mapNotNull { doc ->
                 try {
+                    val explanations = try {
+                        doc.getString("keyword_explanations")?.let {
+                            com.google.gson.Gson().fromJson<Map<String, String>>(
+                                it,
+                                object : com.google.gson.reflect.TypeToken<Map<String, String>>() {}.type
+                            )
+                        } ?: emptyMap()
+                    } catch (e: Exception) {
+                        emptyMap()
+                    }
+
                     ScanResult(
                         message = doc.getString("message") ?: return@mapNotNull null,
                         matchedKeywords = doc.getString("matched_keywords")
@@ -70,8 +99,11 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
                             ?.map { it.trim() }
                             ?.filter { it.isNotEmpty() }
                             ?: emptyList(),
+                        keywordExplanations = explanations,
                         sourceApp = doc.getString("source_app") ?: "Unknown",
-                        timestamp = doc.getLong("timestamp") ?: 0L
+                        timestamp = doc.getLong("timestamp") ?: 0L,
+                        senderName = doc.getString("sender_name"),
+                        conversationTitle = doc.getString("conversation_title")
                     )
                 } catch (e: Exception) {
                     Log.e("SmartGuard", "Invalid Firestore doc: ${doc.id}", e)
@@ -86,9 +118,11 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Combined scan history
+    // Combined scan history - ensure newest first
     val fullHistory: StateFlow<List<ScanResult>> = combine(history, cloudHistory) { local, cloud ->
-        (local + cloud).distinctBy { it.message + it.timestamp }
+        (local + cloud)
+            .distinctBy { it.message + it.timestamp }
+            .sortedByDescending { it.timestamp }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val smsOnly: StateFlow<List<ScanResult>> = fullHistory
@@ -103,10 +137,15 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
     fun addRecord(message: String, source: String) {
         viewModelScope.launch {
             val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
-            val matches = engine.scan(message)
+            val matchedKeywords = engine.scanWithExplanations(message)
+            val keywordsList = matchedKeywords.map { it.keyword }
+            val explanationsMap = matchedKeywords.associate { it.keyword to it.explanation }
+            val explanationsJson = com.google.gson.Gson().toJson(explanationsMap)
+            
             val entity = ScanRecordEntity(
                 message = message,
-                matchedKeywords = matches.joinToString(","),
+                matchedKeywords = keywordsList.joinToString(","),
+                keywordExplanations = explanationsJson,
                 sourceApp = source,
                 timestamp = System.currentTimeMillis(),
                 userId = userId
@@ -121,6 +160,7 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
         val doc = mapOf(
             "message" to entity.message,
             "matched_keywords" to entity.matchedKeywords,
+            "keyword_explanations" to entity.keywordExplanations,
             "source_app" to entity.sourceApp,
             "timestamp" to entity.timestamp
         )
@@ -143,6 +183,17 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
             demoMessages.forEach { msg ->
                 addRecord(msg, "Demo")
             }
+        }
+    }
+    
+    // Force refresh the history data
+    fun refreshHistory() {
+        viewModelScope.launch {
+            // Force refresh by re-emitting the current data
+            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+            // Trigger a refresh by calling the flow again
+            history.value // This will trigger the flow to re-emit
+            cloudHistory.value // This will trigger the cloud flow to re-emit
         }
     }
 }

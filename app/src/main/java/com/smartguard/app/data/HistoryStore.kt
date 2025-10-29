@@ -19,7 +19,9 @@ data class ScanRecord(
     val message: String,
     val matchedKeywords: List<String>,
     val sourceApp: String?,
-    val timestamp: Long
+    val timestamp: Long,
+    val senderName: String? = null,
+    val conversationTitle: String? = null
 )
 
 

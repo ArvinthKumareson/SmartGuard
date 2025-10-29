@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.smartguard.app-mergeDebugResources-80:/values-mk/values-mk.xml",
+            "outputFile": "com.smartguard.app-mergeDebugResources-81:/values-mk/values-mk.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ugots\\.gradle\\caches\\8.13\\transforms\\8800e48c0624688cf72ed4738bb017fa\\transformed\\jetified-material3-release\\res\\values-mk\\values-mk.xml",

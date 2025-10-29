@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.smartguard.app-mergeDebugResources-80:/values-en-rAU/values-en-rAU.xml",
+            "outputFile": "com.smartguard.app-mergeDebugResources-81:/values-en-rAU/values-en-rAU.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ugots\\.gradle\\caches\\8.13\\transforms\\9ceac55c7a7278b739c1167957822ce6\\transformed\\jetified-foundation-release\\res\\values-en-rAU\\values-en-rAU.xml",

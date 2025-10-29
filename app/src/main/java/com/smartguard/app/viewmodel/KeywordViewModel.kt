@@ -9,23 +9,37 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+data class KeywordData(
+    val id: String,
+    val value: String,
+    val explanation: String
+)
+
 class KeywordViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
     private val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-    private val _keywords = MutableStateFlow<List<Pair<String, String>>>(emptyList())
-    val keywords: StateFlow<List<Pair<String, String>>> = _keywords
+    private val _keywords = MutableStateFlow<List<KeywordData>>(emptyList())
+    val keywords: StateFlow<List<KeywordData>> = _keywords
 
     init {
-        db.collection("keywords").addSnapshotListener { snapshot, _ ->
+        db.collection("keywords").addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e("KeywordViewModel", "Error listening to keywords: ${error.message}", error)
+                return@addSnapshotListener
+            }
+            
             val list = snapshot?.documents?.mapNotNull {
                 val value = it.getString("value")
-                if (value != null) it.id to value else null
+                val explanation = it.getString("explanation") ?: "This keyword is commonly used in scam messages"
+                if (value != null) KeywordData(it.id, value, explanation) else null
             } ?: emptyList()
+            
+            Log.d("KeywordViewModel", "Loaded ${list.size} keywords from Firestore")
             _keywords.value = list
         }
     }
-
+    //Deprecated
     suspend fun addKeywordsBulk(keywords: List<String>) {
         val db = FirebaseFirestore.getInstance()
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -50,15 +64,25 @@ class KeywordViewModel : ViewModel() {
     }
 
 
-    fun addKeyword(value: String) {
+    fun addKeyword(value: String, explanation: String = "") {
         if (value.isBlank()) return
+        val finalExplanation = explanation.ifBlank { "This keyword is commonly used in scam messages" }
+        
+        Log.d("KeywordViewModel", "Adding keyword: $value with explanation: $finalExplanation")
+        Log.d("KeywordViewModel", "Current user UID: $uid")
+        
         db.collection("keywords").add(
             mapOf(
                 "value" to value,
+                "explanation" to finalExplanation,
                 "addedBy" to uid,
                 "timestamp" to FieldValue.serverTimestamp()
             )
-        )
+        ).addOnSuccessListener { docRef ->
+            Log.d("KeywordViewModel", "Keyword added successfully with ID: ${docRef.id}")
+        }.addOnFailureListener { e ->
+            Log.e("KeywordViewModel", "Failed to add keyword: ${e.message}", e)
+        }
     }
 
     fun deleteKeyword(id: String) {

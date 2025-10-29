@@ -16,7 +16,9 @@ class UserHistoryStore(private val context: Context) {
             "message" to record.message,
             "matched_keywords" to record.matchedKeywords.joinToString(","), // ✅ Store as comma-separated string
             "source_app" to record.sourceApp,
-            "timestamp" to record.timestamp
+            "timestamp" to record.timestamp,
+            "sender_name" to (record.senderName ?: ""),
+            "conversation_title" to (record.conversationTitle ?: "")
         )
 
         firestore.collection("users")
@@ -44,7 +46,9 @@ class UserHistoryStore(private val context: Context) {
                         ?.filter { it.isNotEmpty() }
                         ?: emptyList(),
                     sourceApp = doc.getString("source_app"),
-                    timestamp = doc.getLong("timestamp") ?: 0L
+                    timestamp = doc.getLong("timestamp") ?: 0L,
+                    senderName = doc.getString("sender_name"),
+                    conversationTitle = doc.getString("conversation_title")
                 )
             } catch (e: Exception) {
                 null

@@ -4,31 +4,38 @@ package com.smartguard.app.mainapp.user
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
-import com.google.firebase.auth.UserProfileChangeRequest
 import com.smartguard.app.viewmodel.AuthViewModel
 import com.smartguard.app.R
-import com.smartguard.app.mainapp.resources.GradientButton
 import com.smartguard.app.mainapp.resources.SmartGuardBottomBar
+import com.smartguard.app.utils.PermissionUtils
 
 @Composable
 fun ProfileScreen(nav: NavController, vm: AuthViewModel) {
     val user = vm.currentUser.collectAsState().value
-    var newName by remember { mutableStateOf(user?.displayName ?: "") }
-    var oldPassword by remember { mutableStateOf("") }
-    var newPassword by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf<String?>(null) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var permStatus by remember { mutableStateOf(PermissionUtils.getNotificationPermissionStatus(context)) }
+
+    // Refresh permission status when screen becomes visible
+    LaunchedEffect(Unit) {
+        permStatus = PermissionUtils.getNotificationPermissionStatus(context)
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -54,96 +61,216 @@ fun ProfileScreen(nav: NavController, vm: AuthViewModel) {
                 modifier = Modifier
                     .padding(padding)
                     .padding(24.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
-                Text("Email: ${user?.email ?: "N/A"}", color = Color.White)
-                Spacer(Modifier.height(24.dp))
-
-                Text("Display Name", color = Color.White)
-                OutlinedTextField(
-                    value = newName,
-                    onValueChange = { newName = it },
-                    textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        containerColor = Color.White,
-                        cursorColor = Color.Black,
-                        focusedBorderColor = Color.Black,
-                        unfocusedBorderColor = Color.Gray
-                    )
-                )
-
-                GradientButton("Update Name", onClick = {
-                    val profileUpdates = UserProfileChangeRequest.Builder()
-                        .setDisplayName(newName)
-                        .build()
-                    user?.updateProfile(profileUpdates)
-                        ?.addOnCompleteListener { task ->
-                            message =
-                                if (task.isSuccessful) "Name updated!" else "Failed to update name"
-                        }
-                })
-
-                Spacer(Modifier.height(32.dp))
-
-                Text("Current Password", color = Color.White)
-                OutlinedTextField(
-                    value = oldPassword,
-                    onValueChange = { oldPassword = it },
-                    visualTransformation = PasswordVisualTransformation(),
-                    textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        containerColor = Color.White,
-                        cursorColor = Color.Black,
-                        focusedBorderColor = Color.Black,
-                        unfocusedBorderColor = Color.Gray
-                    )
-                )
-
-                Text("New Password", color = Color.White)
-                OutlinedTextField(
-                    value = newPassword,
-                    onValueChange = { newPassword = it },
-                    visualTransformation = PasswordVisualTransformation(),
-                    textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        containerColor = Color.White,
-                        cursorColor = Color.Black,
-                        focusedBorderColor = Color.Black,
-                        unfocusedBorderColor = Color.Gray
-                    )
-                )
-
-                GradientButton("Change Password", onClick = {
-                    val email = user?.email
-                    if (email != null) {
-                        vm.login(email, oldPassword) { success, _ ->
-                            if (success) {
-                                user.updatePassword(newPassword)
-                                    .addOnCompleteListener { task ->
-                                        message =
-                                            if (task.isSuccessful) "Password updated!" else "Failed to update password"
-                                    }
-                            } else {
-                                message = "Current password is incorrect"
+                // User Info Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0x33000000)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                color = Color(0xFF6200EE),
+                                shape = androidx.compose.foundation.shape.CircleShape,
+                                modifier = Modifier.size(60.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        user?.displayName?.firstOrNull()?.uppercase() ?: "U",
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    text = user?.displayName ?: "User",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = user?.email ?: "No email",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Gray
+                                )
                             }
                         }
                     }
-                })
-
-                message?.let {
-                    Spacer(Modifier.height(16.dp))
-                    Text(it, color = Color(0xFFDA22FF))
                 }
 
-                Spacer(Modifier.height(32.dp))
-                GradientButton("Sign Out", onClick = {
-                    vm.logout()
-                    nav.navigate("login") {
-                        popUpTo(0) { inclusive = true }
+                Spacer(Modifier.height(24.dp))
+
+                // Settings Options
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0x33000000)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Settings",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        Spacer(Modifier.height(16.dp))
+                        
+                        // Account Settings Option
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { nav.navigate("account_settings") },
+                            colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = Color(0xFF6200EE),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Account Settings",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = "Change name and password",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.Gray
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.ArrowForward,
+                                    contentDescription = null,
+                                    tint = Color.Gray,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        
+                        Spacer(Modifier.height(12.dp))
+                        
+                        // Permissions Settings Option
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { nav.navigate("permissions_settings") },
+                            colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Security,
+                                    contentDescription = null,
+                                    tint = Color(0xFF4CAF50),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Permissions",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = "Manage notification access",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.Gray
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    val enabled = permStatus == "Enabled"
+                                    Icon(
+                                        imageVector = if (enabled) Icons.Filled.CheckCircle else Icons.Filled.Warning,
+                                        contentDescription = null,
+                                        tint = if (enabled) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowForward,
+                                        contentDescription = null,
+                                        tint = Color.Gray,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
-                })
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                // Quick Status Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0x33000000)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Quick Status",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        Spacer(Modifier.height(12.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "WhatsApp Scanning:",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                            val enabled = permStatus == "Enabled"
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (enabled) Icons.Filled.CheckCircle else Icons.Filled.Warning,
+                                    contentDescription = null,
+                                    tint = if (enabled) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = permStatus,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (enabled) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

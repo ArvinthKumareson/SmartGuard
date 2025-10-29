@@ -22,7 +22,6 @@ import androidx.navigation.NavController
 import com.google.gson.Gson
 import com.smartguard.app.R
 import com.smartguard.app.model.QuizResult
-import com.smartguard.app.mainapp.user.BottomNavigationBar
 import com.smartguard.app.mainapp.resources.GradientButton
 import com.smartguard.app.mainapp.common.BackgroundWrapper
 import com.smartguard.app.viewmodel.QuizUserViewModel
@@ -83,7 +82,7 @@ fun QuizScreen(nav: NavController, vm: QuizUserViewModel = viewModel()) {
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E))
                 )
             },
-            bottomBar = { BottomNavigationBar(nav) }
+            bottomBar = { com.smartguard.app.mainapp.resources.SmartGuardBottomBar(nav, "quiz") }
         ) { padding ->
             when {
                 isLoading -> {
@@ -161,7 +160,8 @@ fun QuizScreen(nav: NavController, vm: QuizUserViewModel = viewModel()) {
                                             question = q.question,
                                             selectedAnswer = selected[i]?.let { q.choices[it] },
                                             correctAnswer = q.choices[q.answer],
-                                            isCorrect = selected[i] == q.answer
+                                            isCorrect = selected[i] == q.answer,
+                                            reason = q.reason
                                         )
                                     }
                                     val json = Gson().toJson(results)
