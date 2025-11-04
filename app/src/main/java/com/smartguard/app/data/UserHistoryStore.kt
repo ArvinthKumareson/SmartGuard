@@ -11,10 +11,12 @@ class UserHistoryStore(private val context: Context) {
 
     suspend fun save(record: ScanRecord) {
         val userId = auth.currentUser?.uid ?: return
-
+        
+        // Note: keyword_explanations will be added by DetectionEngine in NotificationListener
+        // This save method is called from NotificationListener which needs to include explanations
         val doc = mapOf(
             "message" to record.message,
-            "matched_keywords" to record.matchedKeywords.joinToString(","), // ✅ Store as comma-separated string
+            "matched_keywords" to record.matchedKeywords.joinToString(","),
             "source_app" to record.sourceApp,
             "timestamp" to record.timestamp,
             "sender_name" to (record.senderName ?: ""),

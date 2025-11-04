@@ -10,23 +10,29 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.tasks.await
 
+// Model for storing keyword and its explanation
 data class KeywordInfo(
     val keyword: String,
     val explanation: String
 )
 
+// Manages encrypted storage and syncing of scam detection keywords
+// Keywords are stored locally in encrypted SharedPreferences and synced from Firestore
 object EncryptedKeywords {
     private const val PREFS_NAME = "smartguard_encrypted_prefs"
     private const val KEYWORDS_KEY = "keywords"
     private const val KEYWORDS_MAP_KEY = "keywords_map"
     private val gson = Gson()
+    // Listens for real-time keyword updates from Firestore
     private var keywordListener: ListenerRegistration? = null
 
+    // Returns set of current keywords from encrypted storage
     fun getKeywords(context: Context): Set<String> {
         val keywordsMap = getKeywordsMap(context)
         return keywordsMap.keys
     }
 
+    // Retrieves map of keywords to their explanations from encrypted storage
     fun getKeywordsMap(context: Context): Map<String, String> {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -52,8 +58,11 @@ object EncryptedKeywords {
         return map
     }
 
+    // Manually syncs keywords from Firestore to local encrypted storage
+    // Called on login and when message is received to ensure fresh keywords
     suspend fun syncFromFirestore(context: Context) {
         val snapshot = FirebaseFirestore.getInstance().collection("keywords").get().await()
+        // Extract keywords and explanations from Firestore documents
         val firestoreKeywords = snapshot.documents.associate {
             val keyword = it.getString("value") ?: return@associate null to null
             val explanation = it.getString("explanation") ?: "This keyword is commonly used in scam messages"
@@ -61,10 +70,12 @@ object EncryptedKeywords {
         }.filterKeys { it != null } as Map<String, String>
         
         Log.d("EncryptedKeywords", "Synced ${firestoreKeywords.size} keywords from Firestore")
+        // Save to encrypted storage for offline use
         saveKeywordsMap(context, firestoreKeywords)
     }
 
-    // Real-time sync - automatically updates when keywords change in Firestore
+    // Sets up real-time listener for keyword updates from Firestore
+    // Keywords are automatically updated in local storage whenever they change remotely
     fun startRealtimeSync(context: Context) {
         // Remove existing listener if any
         keywordListener?.remove()

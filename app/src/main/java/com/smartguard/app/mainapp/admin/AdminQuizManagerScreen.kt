@@ -316,7 +316,7 @@ fun AdminQuizManagerScreen(nav: NavController, vm: QuizAdminViewModel = viewMode
                     try {
                         // Handle video upload
                         val videoUrl = if (selectedVideoUri != null) {
-                            // Upload new video to Firebase Storage
+                            // Upload new video to CLoudinary
                             VideoUploader.uploadVideo(context, selectedVideoUri!!)
                         } else if (editingQuestionId != null && existingVideoUri != null) {
                             // Keep existing video when editing and no new video selected

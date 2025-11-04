@@ -1,15 +1,18 @@
 package com.smartguard.app.viewmodel
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartguard.app.data.ScamReportRepository
 import com.smartguard.app.model.ScamComment
 import com.smartguard.app.model.ScamReport
+import com.smartguard.app.util.CloudinaryStorageHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import android.util.Log
 
 sealed class ReportSubmitState {
     object Idle : ReportSubmitState()
@@ -52,20 +55,35 @@ class ScamReportViewModel : ViewModel() {
     }
 
     fun submitReport(
+        context: Context,
         title: String,
         description: String,
         scamType: String,
         amount: String,
         platform: String,
-        postAsAnonymous: Boolean = false
+        postAsAnonymous: Boolean = false,
+        imageUri: Uri? = null
     ) {
         viewModelScope.launch {
             _submitState.value = ReportSubmitState.Loading
-            val result = repository.submitReport(title, description, scamType, amount, platform, postAsAnonymous)
-            result.fold(
-                onSuccess = { _submitState.value = ReportSubmitState.Success },
-                onFailure = { _submitState.value = ReportSubmitState.Error(it.message ?: "Failed to submit report") }
-            )
+            try {
+                var imageUrl: String? = null
+                if (imageUri != null) {
+                    imageUrl = CloudinaryStorageHelper.uploadScamReportImage(context, imageUri)
+                    if (imageUrl == null) {
+                        _submitState.value = ReportSubmitState.Error("Failed to upload image")
+                        return@launch
+                    }
+                }
+                val result = repository.submitReport(title, description, scamType, amount, platform, postAsAnonymous, imageUrl)
+                result.fold(
+                    onSuccess = { _submitState.value = ReportSubmitState.Success },
+                    onFailure = { _submitState.value = ReportSubmitState.Error(it.message ?: "Failed to submit report") }
+                )
+            } catch (e: Exception) {
+                Log.e("ScamReportViewModel", "Error submitting report", e)
+                _submitState.value = ReportSubmitState.Error(e.message ?: "Unknown error")
+            }
         }
     }
 
@@ -89,25 +107,27 @@ class ScamReportViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 Log.e("ScamReportViewModel", "Error loading approved reports: ${e.message}", e)
-                // Fallback 1: try all reports with timestamp order
+                // Fallback 1: try all reports with timestamp order, but filter for approved only
                 try {
-                    Log.w("ScamReportViewModel", "Falling back to all reports with ordering...")
-                    repository.getAllReports().collectLatest { reports ->
-                        if (reports.isEmpty()) {
+                    Log.w("ScamReportViewModel", "Falling back to all reports with ordering, filtering approved...")
+                    repository.getAllReports().collectLatest { allReports ->
+                        val approvedReports = allReports.filter { it.status == "approved" }
+                        if (approvedReports.isEmpty()) {
                             _approvedReportsState.value = ReportsListState.Empty
                         } else {
-                            _approvedReportsState.value = ReportsListState.Success(reports)
+                            _approvedReportsState.value = ReportsListState.Success(approvedReports)
                         }
                     }
                 } catch (e2: Exception) {
-                    // Fallback 2: try unordered any-status to avoid index/field issues
+                    // Fallback 2: try unordered any-status to avoid index/field issues, but filter for approved only
                     try {
-                        Log.w("ScamReportViewModel", "Falling back to unordered any-status reports...")
-                        repository.getReportsAnyStatusUnordered().collectLatest { reports ->
-                            if (reports.isEmpty()) {
+                        Log.w("ScamReportViewModel", "Falling back to unordered any-status reports, filtering approved...")
+                        repository.getReportsAnyStatusUnordered().collectLatest { allReports ->
+                            val approvedReports = allReports.filter { it.status == "approved" }
+                            if (approvedReports.isEmpty()) {
                                 _approvedReportsState.value = ReportsListState.Empty
                             } else {
-                                _approvedReportsState.value = ReportsListState.Success(reports)
+                                _approvedReportsState.value = ReportsListState.Success(approvedReports)
                             }
                         }
                     } catch (e3: Exception) {

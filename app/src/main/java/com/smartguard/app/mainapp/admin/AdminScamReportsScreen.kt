@@ -419,6 +419,7 @@ fun AdminReportCard(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
+            containerColor = Color.Black,
             title = { Text("Delete Report?", color = Color.White) },
             text = { Text("This will permanently delete this report and all its comments.", color = Color.Gray) },
             confirmButton = {
@@ -451,6 +452,7 @@ fun RejectDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color.Black,
         title = { Text("Reject Report", color = Color.White) },
         text = {
             Column {

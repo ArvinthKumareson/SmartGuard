@@ -39,7 +39,7 @@ object PermissionUtils {
                 false
             }
         } else {
-            // For older API levels, we can't check this programmatically
+            // For older API levels,can't check this programmatically
             // Return false to prompt user to check manually
             false
         }

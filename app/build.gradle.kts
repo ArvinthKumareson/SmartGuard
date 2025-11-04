@@ -110,6 +110,14 @@ dependencies {
     
     // Coil for loading images from URLs
     implementation("io.coil-kt:coil-compose:2.5.0")
+    
+    // ✅ Image Picker
+    implementation("androidx.activity:activity-ktx:1.9.1")
+    
+    // ✅ ExoPlayer for video playback
+    implementation("androidx.media3:media3-exoplayer:1.1.1")
+    implementation("androidx.media3:media3-ui:1.1.1")
+    implementation("androidx.media3:media3-common:1.1.1")
 
     // ✅ Testing
     testImplementation("junit:junit:4.13.2")

@@ -1,5 +1,7 @@
 package com.smartguard.app.mainapp.user
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -23,7 +26,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import android.net.Uri
 import android.util.Log
+import coil.compose.AsyncImage
 import com.smartguard.app.model.ScamComment
 import com.smartguard.app.model.ScamReport
 import com.smartguard.app.model.ScamType
@@ -400,6 +405,23 @@ fun ScamReportCard(report: ScamReport, onClick: () -> Unit, viewModel: ScamRepor
                 overflow = TextOverflow.Ellipsis
             )
 
+            if (!report.imageUrl.isNullOrBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .background(Color(0xFF2E2E3E), RoundedCornerShape(8.dp))
+                ) {
+                    AsyncImage(
+                        model = report.imageUrl,
+                        contentDescription = "Scam report image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+
             if (report.platform.isNotBlank()) {
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -518,6 +540,7 @@ fun ErrorView(message: String) {
 @Composable
 fun SubmitReportDialog(onDismiss: () -> Unit, viewModel: ScamReportViewModel) {
     val submitState by viewModel.submitState.collectAsState()
+    val context = LocalContext.current
     
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -526,6 +549,13 @@ fun SubmitReportDialog(onDismiss: () -> Unit, viewModel: ScamReportViewModel) {
     var platform by remember { mutableStateOf("") }
     var postAsAnonymous by remember { mutableStateOf(false) }
     var showScamTypeMenu by remember { mutableStateOf(false) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        selectedImageUri = uri
+    }
 
     LaunchedEffect(submitState) {
         if (submitState is ReportSubmitState.Success) {
@@ -673,6 +703,41 @@ fun SubmitReportDialog(onDismiss: () -> Unit, viewModel: ScamReportViewModel) {
                     singleLine = true
                 )
 
+                Button(
+                    onClick = { imagePickerLauncher.launch("image/*") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE))
+                ) {
+                    Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(if (selectedImageUri != null) "Change Image" else "Upload Image (Optional)")
+                }
+
+                if (selectedImageUri != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .background(Color(0xFF2E2E3E), RoundedCornerShape(8.dp))
+                    ) {
+                        AsyncImage(
+                            model = selectedImageUri,
+                            contentDescription = "Selected image preview",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                        IconButton(
+                            onClick = { selectedImageUri = null },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Remove image", tint = Color.White, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -735,12 +800,14 @@ fun SubmitReportDialog(onDismiss: () -> Unit, viewModel: ScamReportViewModel) {
                     onClick = {
                         if (title.isNotBlank() && description.isNotBlank()) {
                             viewModel.submitReport(
+                                context = context,
                                 title = title,
                                 description = description,
                                 scamType = selectedScamType.name,
                                 amount = amount,
                                 platform = platform,
-                                postAsAnonymous = postAsAnonymous
+                                postAsAnonymous = postAsAnonymous,
+                                imageUri = selectedImageUri
                             )
                         }
                     },
@@ -884,6 +951,28 @@ fun ReportDetailDialog(report: ScamReport, onDismiss: () -> Unit, viewModel: Sca
                                     color = Color.White,
                                     lineHeight = MaterialTheme.typography.bodyLarge.lineHeight
                                 )
+                            }
+                        }
+                    }
+
+                    if (!report.imageUrl.isNullOrBlank()) {
+                        item {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF2E2E3E)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(250.dp)
+                                ) {
+                                    AsyncImage(
+                                        model = report.imageUrl,
+                                        contentDescription = "Scam report image",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
                             }
                         }
                     }

@@ -24,7 +24,8 @@ class ScamReportRepository {
         scamType: String,
         amount: String,
         platform: String,
-        postAsAnonymous: Boolean = false
+        postAsAnonymous: Boolean = false,
+        imageUrl: String? = null
     ): Result<Unit> {
         return try {
             val currentUser = auth.currentUser ?: return Result.failure(Exception("User not logged in"))
@@ -51,7 +52,8 @@ class ScamReportRepository {
                 description = description,
                 scamType = scamType,
                 amount = amount,
-                platform = platform
+                platform = platform,
+                imageUrl = imageUrl
             )
             
             reportsCollection.add(report.toMap()).await()

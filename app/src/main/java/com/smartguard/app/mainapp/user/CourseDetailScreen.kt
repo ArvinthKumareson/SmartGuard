@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, androidx.media3.common.util.UnstableApi::class)
 
 package com.smartguard.app.mainapp.user
 
@@ -35,10 +35,12 @@ import com.smartguard.app.R
 import com.smartguard.app.mainapp.common.BackgroundWrapper
 import com.smartguard.app.mainapp.resources.SmartGuardBottomBar
 import kotlinx.coroutines.launch
-import android.widget.VideoView
-import android.widget.MediaController
 import android.net.Uri
 import coil.compose.AsyncImage
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
+import androidx.media3.common.MediaItem
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun CourseDetailScreen(nav: NavController, courseTitle: String) {
@@ -500,6 +502,21 @@ fun TipDetailPage(
             
             // Display Video if available
             tip.videoUri?.let { videoUri ->
+                val context = LocalContext.current
+                val exoPlayer = remember {
+                    ExoPlayer.Builder(context).build().apply {
+                        val mediaItem = MediaItem.fromUri(Uri.parse(videoUri))
+                        setMediaItem(mediaItem)
+                        prepare()
+                    }
+                }
+                
+                DisposableEffect(Unit) {
+                    onDispose {
+                        exoPlayer.release()
+                    }
+                }
+                
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -508,22 +525,11 @@ fun TipDetailPage(
                     colors = CardDefaults.cardColors(containerColor = Color.Black)
                 ) {
                     AndroidView(
-                        factory = { context ->
-                            VideoView(context).apply {
-                                setVideoURI(Uri.parse(videoUri))
-                                val mediaController = MediaController(context)
-                                mediaController.setAnchorView(this)
-                                setMediaController(mediaController)
-                                
-                                setOnPreparedListener { mp ->
-                                    mp.isLooping = false
-                                    start()
-                                }
-                                
-                                setOnErrorListener { _, what, extra ->
-                                    android.util.Log.e("VideoPlayer", "Error: what=$what, extra=$extra")
-                                    true
-                                }
+                        factory = {
+                            PlayerView(it).apply {
+                                player = exoPlayer
+                                useController = true
+                                controllerShowTimeoutMs = 5000
                             }
                         },
                         modifier = Modifier.fillMaxSize()

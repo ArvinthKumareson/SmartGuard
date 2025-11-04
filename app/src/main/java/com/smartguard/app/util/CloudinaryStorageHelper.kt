@@ -17,25 +17,27 @@ import java.util.UUID
 object CloudinaryStorageHelper {
 
     private const val CLOUD_NAME = "divkeedz7"
-    private const val API_KEY = "274498615889423"
-    private const val API_SECRET = "N2xhfvt9e2hWg8F_bNPQfGJakiI"
     private const val UPLOAD_PRESET = "unsigned_preset" // Create in Cloudinary settings
     
     private val client = OkHttpClient()
-    private val uploadUrl = "https://api.cloudinary.com/v1_1/$CLOUD_NAME/auto/upload"
     
     suspend fun uploadImage(context: Context, imageUri: Uri): String? {
-        return uploadFile(context, imageUri, "course_images")
+        return uploadFile(context, imageUri, "course_images", "https://api.cloudinary.com/v1_1/$CLOUD_NAME/image/upload")
     }
     
     suspend fun uploadVideo(context: Context, videoUri: Uri): String? {
-        return uploadFile(context, videoUri, "course_videos")
+        return uploadFile(context, videoUri, "course_videos", "https://api.cloudinary.com/v1_1/$CLOUD_NAME/video/upload")
+    }
+    
+    suspend fun uploadScamReportImage(context: Context, imageUri: Uri): String? {
+        return uploadFile(context, imageUri, "scam_reports", "https://api.cloudinary.com/v1_1/$CLOUD_NAME/image/upload")
     }
     
     private suspend fun uploadFile(
         context: Context,
         fileUri: Uri,
-        folder: String
+        folder: String,
+        uploadUrl: String
     ): String? = withContext(Dispatchers.IO) {
         try {
             Log.d("CloudinaryStorage", "Starting upload for URI: $fileUri")

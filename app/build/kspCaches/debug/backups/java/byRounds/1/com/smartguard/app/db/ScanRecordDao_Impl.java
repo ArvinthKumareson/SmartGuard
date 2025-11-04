@@ -35,6 +35,8 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
 
   private final SharedSQLiteStatement __preparedStmtOfClearAllForUser;
 
+  private final SharedSQLiteStatement __preparedStmtOfDeleteById;
+
   public ScanRecordDao_Impl(@NonNull final RoomDatabase __db) {
     this.__db = __db;
     this.__insertionAdapterOfScanRecordEntity = new EntityInsertionAdapter<ScanRecordEntity>(__db) {
@@ -82,6 +84,14 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
         return _query;
       }
     };
+    this.__preparedStmtOfDeleteById = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "DELETE FROM scan_records WHERE id = ?";
+        return _query;
+      }
+    };
   }
 
   @Override
@@ -123,6 +133,31 @@ public final class ScanRecordDao_Impl implements ScanRecordDao {
           }
         } finally {
           __preparedStmtOfClearAllForUser.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object deleteById(final long id, final Continuation<? super Integer> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Integer>() {
+      @Override
+      @NonNull
+      public Integer call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfDeleteById.acquire();
+        int _argIndex = 1;
+        _stmt.bindLong(_argIndex, id);
+        try {
+          __db.beginTransaction();
+          try {
+            final Integer _result = _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return _result;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfDeleteById.release(_stmt);
         }
       }
     }, $completion);

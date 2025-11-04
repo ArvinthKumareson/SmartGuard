@@ -6,17 +6,26 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.smartguard.app.data.DetectionEngine
 import com.smartguard.app.data.EncryptedKeywords
-import com.smartguard.app.data.ScanRecord
-import com.smartguard.app.data.UserHistoryStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class SmartGuardNotificationListener : NotificationListenerService() {
 
     private val scope = CoroutineScope(Dispatchers.IO)
     private lateinit var engine: DetectionEngine
     private val processedNotifications = mutableSetOf<String>()
+    
+    private fun getAppDisplayName(packageName: String): String {
+        return when (packageName) {
+            "com.whatsapp" -> "WhatsApp"
+            "org.telegram.messenger" -> "Telegram"
+            "com.android.mms" -> "Messages"
+            "android.provider.Telephony.SMS_RECEIVED" -> "SMS"
+            else -> packageName.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -68,29 +77,63 @@ class SmartGuardNotificationListener : NotificationListenerService() {
         }
 
         // Extract sender information
-        val senderName = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: "Unknown Sender"
+        var senderName = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: "Unknown Sender"
         val conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString()
+        Log.d("SmartGuardNotif", "Initial title/sender: $senderName")
+        
+        // Check if this is SMS (any SMS/messaging app)
+        val isSMS = sbn.packageName == "android.provider.Telephony.SMS_RECEIVED" || 
+                    sbn.packageName == "com.android.mms" ||
+                    sbn.packageName == "com.google.android.apps.messaging" ||
+                    sbn.packageName == "com.samsung.android.messaging" ||
+                    sbn.packageName.contains("messaging") ||
+                    sbn.packageName.contains("sms") ||
+                    senderName.matches(Regex(".*\\+?[0-9\\s\\-\\(\\)]{7,}.*")) // Phone number in title
+        
+        if (isSMS) {
+            val phoneRegex = Regex("\\+?[0-9\\s\\-\\(\\)]{7,}")
+            var phoneMatch = phoneRegex.find(senderName)
+            
+            // If no phone in title, try extracting from message text
+            if (phoneMatch == null) {
+                val messageText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
+                phoneMatch = phoneRegex.find(messageText)
+                Log.d("SmartGuardNotif", "Searching in message text: $messageText, found: ${phoneMatch?.value}")
+            }
+            
+            if (phoneMatch != null) {
+                senderName = phoneMatch.value.trim()
+                Log.d("SmartGuardNotif", "Extracted phone: $senderName")
+            } else {
+                senderName = "SMS"
+                Log.d("SmartGuardNotif", "No phone found, using SMS fallback")
+            }
+        } else {
+            // For other apps, use app display name
+            senderName = getAppDisplayName(sbn.packageName)
+        }
         
         // Extract message content
         val messageText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
         val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
 
-        // For WhatsApp, extract individual messages from MessagingStyle
+        // Only process the latest message from the notification thread (not all historical messages)
         val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
         val messageContents = mutableListOf<String>()
         
         if (messages != null && messages.isNotEmpty()) {
-            // Process each message individually
-            for (message in messages) {
-                val bundle = message as? android.os.Bundle
-                val messageText = bundle?.getCharSequence("text")?.toString()
-                if (!messageText.isNullOrBlank()) {
-                    messageContents.add(messageText)
-                }
+            // Only process the LATEST message (last one in array)
+            val lastMessage = messages.last()
+            val bundle = lastMessage as? android.os.Bundle
+            val messageText = bundle?.getCharSequence("text")?.toString()
+            if (!messageText.isNullOrBlank()) {
+                messageContents.add(messageText)
             }
-        } else {
-            // Fallback to standard notification text
+        }
+        
+        // If no message from array, fallback to standard notification text
+        if (messageContents.isEmpty()) {
             val content = messageText ?: bigText ?: subText
             if (!content.isNullOrBlank()) {
                 messageContents.add(content)
@@ -100,6 +143,13 @@ class SmartGuardNotificationListener : NotificationListenerService() {
         // Process each message separately
         messageContents.forEach { messageContent ->
             if (messageContent.isBlank()) return@forEach
+            
+            // Skip system messages
+            if (messageContent.contains("doing work") || messageContent.contains("background") ||
+                messageContent.contains("notification") || messageContent.lowercase().contains("system")) {
+                Log.d("SmartGuardNotif", "Skipping system message: $messageContent")
+                return@forEach
+            }
 
             // For WhatsApp, create a more specific content-based ID to prevent duplicates
             val contentId = if (sbn.packageName == "com.whatsapp") {
@@ -118,37 +168,94 @@ class SmartGuardNotificationListener : NotificationListenerService() {
             Log.d("SmartGuardNotif", "Sender: $senderName")
             Log.d("SmartGuardNotif", "Message: $messageContent")
 
-            val matchedKeywords = engine.scanWithExplanations(messageContent)
-            if (matchedKeywords.isNotEmpty()) {
-                // Mark this content as processed
-                processedNotifications.add(contentId)
-                
-                // Clean up old processed notifications to prevent memory leaks
-                if (processedNotifications.size > 100) {
-                    processedNotifications.clear()
-                }
-                
-                scope.launch {
-                    val keywordsList = matchedKeywords.map { it.keyword }
-                    val store = UserHistoryStore(applicationContext)
+            // Refresh keywords before scanning (in case admin added new ones) - do in background
+            scope.launch {
+                try {
+                    Log.d("SmartGuardNotif", "Starting keyword sync...")
+                    val keywordsBefore = EncryptedKeywords.getKeywords(applicationContext)
+                    Log.d("SmartGuardNotif", "Keywords BEFORE sync: ${keywordsBefore.size} - ${keywordsBefore.joinToString()}")
                     
-                    // Create a properly formatted message with sender info
-                    val formattedMessage = if (conversationTitle != null && conversationTitle != senderName) {
-                        "[$conversationTitle] $senderName: $messageContent"
-                    } else {
-                        "$senderName: $messageContent"
+                    EncryptedKeywords.syncFromFirestore(applicationContext)
+                    Log.d("SmartGuardNotif", "Keywords refreshed from Firestore")
+                    
+                    val keywordsAfter = EncryptedKeywords.getKeywords(applicationContext)
+                    Log.d("SmartGuardNotif", "Keywords AFTER sync: ${keywordsAfter.size} - ${keywordsAfter.joinToString()}")
+                    
+                    // Now scan with fresh keywords
+                    Log.d("SmartGuardNotif", "About to scan message: '$messageContent'")
+                    val currentKeywords = EncryptedKeywords.getKeywords(applicationContext)
+                    Log.d("SmartGuardNotif", "Current keywords available for scan: ${currentKeywords.size} - ${currentKeywords.joinToString()}")
+                    
+                    val matchedKeywords = engine.scanWithExplanations(messageContent)
+                    Log.d("SmartGuardNotif", "Scan result: ${matchedKeywords.size} matches found - ${matchedKeywords.map { it.keyword }}")
+                    
+                    if (matchedKeywords.isNotEmpty()) {
+                        Log.d("SmartGuardNotif", "FINAL sender_name before save: '$senderName'")
+                        Log.d("SmartGuardNotif", "Matched ${matchedKeywords.size} keywords: ${matchedKeywords.map { it.keyword }}")
+                        // Mark this content as processed
+                        processedNotifications.add(contentId)
+                        
+                        // Clean up old processed notifications to prevent memory leaks
+                        if (processedNotifications.size > 100) {
+                            processedNotifications.clear()
+                        }
+                        
+                        try {
+                            val keywordsList = matchedKeywords.map { it.keyword }
+                            val explanationsMap = matchedKeywords.associate { it.keyword to it.explanation }
+                            val explanationsJson = com.google.gson.Gson().toJson(explanationsMap)
+                            val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
+                            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                            
+                            // Check if similar message already exists (prevent SMS/Messages duplicates)
+                            val existingQuery = firestore.collection("users")
+                                .document(userId)
+                                .collection("scamMessages")
+                                .whereEqualTo("message", messageContent)
+                                .limit(1)
+                                .get()
+                                .await()
+                            
+                            // Save or update the message
+                            val doc = mapOf(
+                                "message" to messageContent,
+                                "matched_keywords" to keywordsList.joinToString(","),
+                                "keyword_explanations" to explanationsJson,
+                                "source_app" to sbn.packageName,
+                                "timestamp" to System.currentTimeMillis(),
+                                "sender_name" to senderName,
+                                "conversation_title" to (conversationTitle ?: "")
+                            )
+                            
+                            Log.d("SmartGuardNotif", "Doc to save: sender_name='$senderName'")
+                            
+                            if (existingQuery.isEmpty) {
+                                // New message - add it
+                                Log.d("SmartGuardNotif", "Saving new message - sender_name: '$senderName', message: '$messageContent'")
+                                firestore.collection("users")
+                                    .document(userId)
+                                    .collection("scamMessages")
+                                    .add(doc)
+                                    .await()
+                                Log.d("SmartGuardNotif", "Successfully saved new message with sender: '$senderName'")
+                            } else {
+                                // Existing message - update it with new sender_name if available
+                                val existingDoc = existingQuery.documents.first()
+                                Log.d("SmartGuardNotif", "Updating existing message - sender_name: '$senderName'")
+                                firestore.collection("users")
+                                    .document(userId)
+                                    .collection("scamMessages")
+                                    .document(existingDoc.id)
+                                    .set(doc)
+                                    .await()
+                                Log.d("SmartGuardNotif", "Successfully updated message with sender: '$senderName'")
+                            }
+                        } catch (e: Exception) {
+                            Log.e("SmartGuardNotif", "Error saving to Firestore", e)
+                        }
                     }
-                    
-                    store.save(
-                        ScanRecord(
-                            message = formattedMessage,
-                            matchedKeywords = keywordsList,
-                            sourceApp = sbn.packageName,
-                            timestamp = System.currentTimeMillis(),
-                            senderName = senderName,
-                            conversationTitle = conversationTitle
-                        )
-                    )
+                } catch (e: Exception) {
+                    Log.d("SmartGuardNotif", "Error syncing keywords or processing message: ${e.message}")
                 }
             }
         }

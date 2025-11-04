@@ -1,6 +1,7 @@
 package com.smartguard.app.db
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -17,6 +18,9 @@ interface ScanRecordDao {
 
     @Query("DELETE FROM scan_records WHERE userId = :userId")
     suspend fun clearAllForUser(userId: String)
+    
+    @Query("DELETE FROM scan_records WHERE id = :id")
+    suspend fun deleteById(id: Long): Int  // Returns number of rows deleted
 
     @Query("SELECT COUNT(*) FROM scan_records WHERE userId = :userId")
     fun countForUser(userId: String): Flow<Int>

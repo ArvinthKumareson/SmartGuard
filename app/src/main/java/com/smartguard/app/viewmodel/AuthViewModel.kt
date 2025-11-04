@@ -16,7 +16,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
+// Handles user authentication and keyword management
+// Manages login, signup, logout, password reset, and keyword syncing
 class AuthViewModel(app: Application) : AndroidViewModel(app) {
     private val auth = FirebaseAuth.getInstance()
     private val _currentUser = MutableStateFlow(auth.currentUser)
@@ -25,6 +28,8 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
     private val appContext = app.applicationContext
 
+    // Logs in user with email and password
+    // Syncs keywords after successful login
     fun login(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
         Log.d("Auth", "login() called with email=$email")
         auth.signInWithEmailAndPassword(email, password)
@@ -75,6 +80,8 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             }
     }
 
+    // Creates new user account with email, password, and display name
+    // Syncs keywords on successful account creation
     fun signup(email: String, password: String, name: String, onResult: (Boolean, String?) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -139,11 +146,35 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // Sends password reset email to user's registered email address
+    // Uses Firebase's built-in email sending functionality
+    fun resetPassword(email: String, onResult: (Boolean, String) -> Unit) {
+        Log.d("Auth", "Sending password reset email to: $email")
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("Auth", "Password reset email sent successfully")
+                    onResult(true, "Password reset email sent to $email. Please check your inbox and follow the instructions.")
+                } else {
+                    val message = when (task.exception) {
+                        is com.google.firebase.auth.FirebaseAuthInvalidUserException -> "Email address not found"
+                        else -> task.exception?.message ?: "Failed to send reset email"
+                    }
+                    Log.e("Auth", "Failed to send reset email: ${task.exception?.message}")
+                    onResult(false, message)
+                }
+            }
+    }
+
+    // Logs out current user and stops real-time keyword syncing
     fun logout() {
-        Log.d("Auth", "Logging out, stopping keyword sync...")
+        Log.d("Auth", "Logging out...")
+        // Stop listening for keyword updates from Firestore
         EncryptedKeywords.stopRealtimeSync()
+        
         auth.signOut()
         _currentUser.value = null
         _isLoggedIn.value = false
+        Log.d("Auth", "Logout complete")
     }
 }

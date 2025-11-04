@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,11 +53,6 @@ fun HistoryScreen(nav: NavController, vm: HistoryViewModel = viewModel()) {
             TopAppBar(
                 title = { Text("Potential Scam Messages", color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E)),
-                actions = {
-                    IconButton(onClick = { vm.refreshHistory() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color.White)
-                    }
-                }
             )
         },
         bottomBar = { com.smartguard.app.mainapp.resources.SmartGuardBottomBar(nav, "history") }
@@ -74,22 +70,28 @@ fun HistoryScreen(nav: NavController, vm: HistoryViewModel = viewModel()) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Button(onClick = { vm.refreshHistory() }) {
-                    Text("Refresh")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
+                    
+                    Button(
+                        onClick = { vm.clearAllMessages() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Clear All", color = Color.White)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Button(onClick = { vm.seedDemoData() }) {
-                    Text("Seed Demo Alerts")
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text("Loaded ${items.size} items", style = MaterialTheme.typography.labelSmall)
+                Text("Loaded ${items.size} items", style = MaterialTheme.typography.labelSmall, color = Color.White)
 
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(items) { item ->
+                    items(items.size) { index ->
+                        val item = items[index]
                         val source = getAppDisplayName(item.sourceApp.ifBlank { "Unknown" })
                         val message = item.message.ifBlank { "No message content" }
                         val keywords = item.matchedKeywords.takeIf { it.isNotEmpty() }?.joinToString() ?: "None"
@@ -99,80 +101,46 @@ fun HistoryScreen(nav: NavController, vm: HistoryViewModel = viewModel()) {
                             Log.e("HistoryScreen", "Invalid timestamp: ${item.timestamp}")
                             "Invalid time"
                         }
-
+                        
                         ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                // App source
-                                Text(source, style = MaterialTheme.typography.titleSmall, color = Color.Black, fontWeight = FontWeight.Bold)
-                                
-                                // Sender information - more prominent display
-                                if (!item.senderName.isNullOrBlank()) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Card(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
-                                        shape = RoundedCornerShape(8.dp)
-                                    ) {
-                                        Column(modifier = Modifier.padding(12.dp)) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(
-                                                    androidx.compose.material.icons.Icons.Default.Person,
-                                                    contentDescription = null,
-                                                    tint = Color(0xFF1976D2),
-                                                    modifier = Modifier.size(16.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                                Text(
-                                                    text = "Sender: ${item.senderName}",
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    color = Color(0xFF1976D2),
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                            
-                                            if (!item.conversationTitle.isNullOrBlank() && item.conversationTitle != item.senderName) {
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Icon(
-                                                        androidx.compose.material.icons.Icons.Default.Group,
-                                                        contentDescription = null,
-                                                        tint = Color(0xFF388E3C),
-                                                        modifier = Modifier.size(16.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(
-                                                        text = "Group: ${item.conversationTitle}",
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        color = Color(0xFF388E3C),
-                                                        fontWeight = FontWeight.Medium
-                                                    )
-                                                }
-                                            }
-                                            
-                                            // Extract phone number if present in sender name
-                                            val phoneRegex = Regex("\\+?[0-9\\s\\-\\(\\)]{7,}")
-                                            val phoneMatch = phoneRegex.find(item.senderName)
-                                            if (phoneMatch != null) {
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Icon(
-                                                        androidx.compose.material.icons.Icons.Default.Phone,
-                                                        contentDescription = null,
-                                                        tint = Color(0xFFFF9800),
-                                                        modifier = Modifier.size(16.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(
-                                                        text = "Phone: ${phoneMatch.value}",
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        color = Color(0xFFFF9800),
-                                                        fontWeight = FontWeight.Medium
-                                                    )
-                                                }
-                                            }
+                                // Header with app source and delete button
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Column {
+                                        Text(source, style = MaterialTheme.typography.titleSmall, color = Color.Black, fontWeight = FontWeight.Bold)
+                                        // Show sender/phone number if available
+                                        if (!item.senderName.isNullOrBlank() && item.senderName != "SMS" && item.senderName != "Unknown Sender") {
+                                            Text(
+                                                item.senderName!!,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color(0xFF1976D2),
+                                                fontWeight = FontWeight.Medium
+                                            )
                                         }
                                     }
+                                    
+                                    IconButton(
+                                        onClick = { 
+                                            Log.d("HistoryScreen", "Deleting item with id: ${item.id}")
+                                            vm.deleteHistoryItem(item.id) 
+                                        },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Delete",
+                                            tint = Color.Red,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
                                 }
+                                
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
                                 
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(message, color = Color.Black)

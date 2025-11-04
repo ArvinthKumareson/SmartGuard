@@ -19,12 +19,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
+import coil.compose.AsyncImage
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import android.content.Intent
 import com.smartguard.app.R
 import com.smartguard.app.data.FirebaseCourseTip
 import com.smartguard.app.mainapp.common.BackgroundWrapper
@@ -491,6 +495,8 @@ fun TipEditorDialog(
     var imageUrl by remember { mutableStateOf(existingTip?.imageUrl) }
     var videoUrl by remember { mutableStateOf(existingTip?.videoUrl) }
     var newActionStep by remember { mutableStateOf("") }
+    var showImagePreview by remember { mutableStateOf(false) }
+    var showVideoPreview by remember { mutableStateOf(false) }
     
     // Image picker
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -737,7 +743,19 @@ fun TipEditorDialog(
                     }
                 }
                 if (imageUrl != null) {
-                    Text("✓ Image uploaded", color = Color(0xFF4CAF50), fontSize = 12.sp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("✓ Image uploaded", color = Color(0xFF4CAF50), fontSize = 12.sp, modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = { showImagePreview = true },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(Icons.Default.Image, contentDescription = "View Image", tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
+                        }
+                    }
                 }
                 
                 Spacer(Modifier.height(8.dp))
@@ -765,7 +783,19 @@ fun TipEditorDialog(
                     }
                 }
                 if (videoUrl != null) {
-                    Text("✓ Video uploaded", color = Color(0xFF4CAF50), fontSize = 12.sp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("✓ Video uploaded", color = Color(0xFF4CAF50), fontSize = 12.sp, modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = { showVideoPreview = true },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(Icons.Default.VideoLibrary, contentDescription = "View Video", tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
+                        }
+                    }
                 }
                 
                 if (uiState.isUploading) {
@@ -781,5 +811,77 @@ fun TipEditorDialog(
         containerColor = Color(0xFF1E1E1E),
         modifier = Modifier.fillMaxWidth()
     )
+    
+    // Image Preview Dialog
+    if (showImagePreview && imageUrl != null) {
+        AlertDialog(
+            onDismissRequest = { showImagePreview = false },
+            title = { Text("Image Preview", color = Color.White) },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = "Uploaded Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 400.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showImagePreview = false }) {
+                    Text("Close", color = Color(0xFF4CAF50))
+                }
+            },
+            containerColor = Color(0xFF1E1E1E)
+        )
+    }
+    
+    // Video Preview Dialog
+    if (showVideoPreview && videoUrl != null) {
+        val context = LocalContext.current
+        AlertDialog(
+            onDismissRequest = { showVideoPreview = false },
+            title = { Text("Video Preview", color = Color.White) },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "Video URL: $videoUrl",
+                        color = Color.Gray,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        maxLines = 2
+                    )
+                    Button(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse(videoUrl)
+                            }
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier.padding(top = 12.dp)
+                    ) {
+                        Text("Open in Browser")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showVideoPreview = false }) {
+                    Text("Close", color = Color(0xFF4CAF50))
+                }
+            },
+            containerColor = Color(0xFF1E1E1E)
+        )
+    }
 }
 

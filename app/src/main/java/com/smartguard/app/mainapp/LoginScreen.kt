@@ -34,6 +34,7 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = viewModel()) {
     var name by remember { mutableStateOf("") }
     var isSignup by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showResetDialog by remember { mutableStateOf(false) }
 
     BackgroundWrapper(imageResId = R.drawable.bg_profile) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
@@ -196,6 +197,15 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = viewModel()) {
                         )
                     }
 
+                    if (!isSignup) {
+                        TextButton(onClick = { showResetDialog = true }) {
+                            Text(
+                                "Forgot Password?",
+                                color = Color(0xFF6200EE)
+                            )
+                        }
+                    }
+
                     errorMessage?.let {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(text = it, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
@@ -204,4 +214,92 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = viewModel()) {
             }
         }
     }
+
+    if (showResetDialog) {
+        ResetPasswordDialog(
+            onDismiss = { showResetDialog = false },
+            onSubmit = { resetEmail ->
+                vm.resetPassword(resetEmail) { success, message ->
+                    errorMessage = message
+                    if (success) {
+                        showResetDialog = false
+                    }
+                }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ResetPasswordDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit
+) {
+    var resetEmail by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFF1E1E1E),
+        title = {
+            Text(
+                "Reset Password",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    "Enter your email address and we'll send you a password reset link.",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = resetEmail,
+                    onValueChange = { resetEmail = it },
+                    label = { Text("Email", color = Color.Gray) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Email
+                    ),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFF6200EE),
+                        unfocusedBorderColor = Color.Gray,
+                        cursorColor = Color.White
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (resetEmail.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(resetEmail.trim()).matches()) {
+                        isLoading = true
+                        onSubmit(resetEmail.trim())
+                    }
+                },
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = Color(0xFF6200EE)
+                    )
+                } else {
+                    Text("Send Reset Email", color = Color(0xFF6200EE))
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = Color.White)
+            }
+        }
+    )
 }

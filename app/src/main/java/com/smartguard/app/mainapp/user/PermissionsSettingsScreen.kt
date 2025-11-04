@@ -108,16 +108,13 @@ fun PermissionsSettingsScreen(nav: NavController) {
                                     color = if (isEnabled) Color(0xFF4CAF50) else Color(0xFFFF9800)
                                 )
                             }
-                            IconButton(onClick = { refreshCounter++ }) {
-                                Icon(Icons.Filled.Refresh, contentDescription = "Refresh", tint = Color.White)
-                            }
                         }
                         
                         Spacer(Modifier.height(16.dp))
                         
                         Text(
                             text = if (isEnabled) {
-                                "SmartGuard can monitor WhatsApp notifications for potential scam messages. Your messages are processed locally and never stored on external servers."
+                                "SmartGuard can monitor WhatsApp notifications for potential scam messages."
                             } else {
                                 "Enable notification access to allow SmartGuard to scan WhatsApp messages for potential scams in real-time."
                             },
@@ -156,8 +153,7 @@ fun PermissionsSettingsScreen(nav: NavController) {
                             "1. Enable notification access in Android settings",
                             "2. SmartGuard monitors incoming WhatsApp messages",
                             "3. Messages are scanned locally for scam keywords",
-                            "4. Alerts are shown if potential scams are detected",
-                            "5. Your messages are never sent to external servers"
+                            "4. Alerts are shown if potential scams are detected"
                         )
                         
                         steps.forEach { step ->
@@ -176,38 +172,6 @@ fun PermissionsSettingsScreen(nav: NavController) {
 
                 Spacer(Modifier.height(24.dp))
 
-                // Privacy section
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0x33000000)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Filled.Security,
-                                contentDescription = null,
-                                tint = Color(0xFF4CAF50),
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                text = "Privacy & Security",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        
-                        Spacer(Modifier.height(12.dp))
-                        
-                        Text(
-                            text = "• All scanning happens on your device\n• No messages are sent to external servers\n• Only scam indicators are stored locally\n• You can disable access anytime",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    }
-                }
             }
         }
     }
