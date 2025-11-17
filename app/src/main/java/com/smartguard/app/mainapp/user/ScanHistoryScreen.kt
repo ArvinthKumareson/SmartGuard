@@ -28,6 +28,13 @@ import com.smartguard.app.viewmodel.ScanHistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * User screen showing the history of website scans.
+ *
+ * Reads [HistoryState] from [ScanHistoryViewModel] and shows either a
+ * list of past URL scans, an empty view, or an error with retry, plus
+ * an option to clear all history.
+ */
 @Composable
 fun ScanHistoryScreen(nav: NavController) {
     val viewModel: ScanHistoryViewModel = viewModel()
@@ -140,6 +147,10 @@ fun ScanHistoryScreen(nav: NavController) {
     }
 }
 
+/**
+ * Card displaying a single website scan result with risk level summary
+ * and a delete action.
+ */
 @Composable
 fun ScanHistoryCard(scan: WebsiteScanHistory, onDelete: () -> Unit) {
     var showDeleteDialog by remember { mutableStateOf(false) }

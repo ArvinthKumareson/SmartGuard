@@ -97,7 +97,7 @@ fun PermissionsSettingsScreen(nav: NavController) {
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "WhatsApp Message Scanning",
+                                    text = "Message Scanning",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold
@@ -114,9 +114,9 @@ fun PermissionsSettingsScreen(nav: NavController) {
                         
                         Text(
                             text = if (isEnabled) {
-                                "SmartGuard can monitor WhatsApp notifications for potential scam messages."
+                                "SmartGuard can monitor notifications for potential scam messages."
                             } else {
-                                "Enable notification access to allow SmartGuard to scan WhatsApp messages for potential scams in real-time."
+                                "Enable notification access to allow SmartGuard to scan messages for potential scams in real-time."
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray
@@ -151,7 +151,7 @@ fun PermissionsSettingsScreen(nav: NavController) {
                         
                         val steps = listOf(
                             "1. Enable notification access in Android settings",
-                            "2. SmartGuard monitors incoming WhatsApp messages",
+                            "2. SmartGuard monitors incoming messages",
                             "3. Messages are scanned locally for scam keywords",
                             "4. Alerts are shown if potential scams are detected"
                         )

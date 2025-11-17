@@ -165,7 +165,9 @@ fun QuizScreen(nav: NavController, vm: QuizUserViewModel = viewModel()) {
                                         )
                                     }
                                     val json = Gson().toJson(results)
-                                    nav.navigate("quizOverview?resultsJson=${URLEncoder.encode(json, "UTF-8")}")
+                                    // Pass results via SavedStateHandle to avoid oversized/encoded route issues
+                                    nav.currentBackStackEntry?.savedStateHandle?.set("quizResultsJson", json)
+                                    nav.navigate("quizOverview")
                                 }, modifier = Modifier.weight(1f))
                             }
                         }

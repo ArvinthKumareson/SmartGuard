@@ -17,6 +17,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * UI state for the user course dashboard.
+ */
 data class CourseUiState(
     val isLoading: Boolean = true,
     val courses: List<FirebaseCourseContent> = emptyList(),
@@ -24,6 +27,13 @@ data class CourseUiState(
     val error: String? = null
 )
 
+/**
+ * ViewModel that provides scam awareness course content to the user side.
+ *
+ * It loads all courses and the current user's progress from [CourseRepository]
+ * and exposes convenience helpers for marking courses as completed and
+ * mapping Firebase models into UI models.
+ */
 class CourseViewModel(application: Application) : AndroidViewModel(application) {
     
     private val context = application.applicationContext
@@ -31,10 +41,14 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
     val uiState: StateFlow<CourseUiState> = _uiState.asStateFlow()
     
     init {
+        // Load both course list and user progress when the ViewModel is created.
         loadCourses()
         loadProgress()
     }
     
+    /**
+     * Loads all available courses from Firestore.
+     */
     fun loadCourses() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -54,6 +68,9 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
     
+    /**
+     * Loads the current user's progress (completed courses) from Firestore.
+     */
     fun loadProgress() {
         viewModelScope.launch {
             try {
@@ -65,6 +82,10 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
     
+    /**
+     * Marks a course as completed, updating local state optimistically
+     * and then persisting the change via [CourseRepository].
+     */
     fun markCourseCompleted(courseTitle: String) {
         viewModelScope.launch {
             // Optimistically update local state first for immediate UI feedback
@@ -95,16 +116,26 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
         loadProgress()
     }
     
+    /**
+     * Refreshes both the course list and the user's progress.
+     */
     fun refresh() {
         // Refresh both courses and progress
         loadCourses()
         loadProgress()
     }
     
+    /**
+     * Returns whether the given course has been marked as completed by the user.
+     */
     fun isCourseCompleted(courseTitle: String): Boolean {
         return _uiState.value.progress?.completedCourses?.contains(courseTitle) ?: false
     }
     
+    /**
+     * Returns a triple of (completed, in-progress, available) course counts
+     * for simple progress summaries in the UI.
+     */
     fun getProgressStats(): Triple<Int, Int, Int> {
         val progress = _uiState.value.progress
         val totalCourses = _uiState.value.courses.size
@@ -115,7 +146,7 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
         return Triple(completed, inProgress, available)
     }
     
-    // Convert Firebase course to ScamCourse for compatibility
+    // Convert Firebase course to ScamCourse for compatibility with existing components
     fun toScamCourses(): List<ScamCourse> {
         return _uiState.value.courses.map { fbCourse ->
             ScamCourse(
@@ -127,7 +158,7 @@ class CourseViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
     
-    // Get course content for CourseDetailScreen
+    // Get course content for CourseDetailScreen by mapping Firebase model into a UI-friendly structure
     fun getCourseContent(courseTitle: String): CourseContent? {
         val fbCourse = _uiState.value.courses.find { it.title == courseTitle } ?: return null
         

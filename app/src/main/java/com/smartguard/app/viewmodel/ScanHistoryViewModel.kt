@@ -8,12 +8,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Sealed UI state used by [ScanHistoryViewModel] to represent website
+ * scan history loading status.
+ */
 sealed class HistoryState {
     object Loading : HistoryState()
     data class Success(val scans: List<WebsiteScanHistory>) : HistoryState()
     data class Error(val message: String) : HistoryState()
 }
 
+/**
+ * ViewModel that exposes the current user's website scan history.
+ *
+ * It delegates persistence to [WebsiteScanRepository] and maps repository
+ * results into a simple [HistoryState] for the UI.
+ */
 class ScanHistoryViewModel : ViewModel() {
     
     private val repository = WebsiteScanRepository()
@@ -25,6 +35,9 @@ class ScanHistoryViewModel : ViewModel() {
         loadHistory()
     }
 
+    /**
+     * Triggers a reload of website scan history from Firestore.
+     */
     fun loadHistory() {
         viewModelScope.launch {
             _historyState.value = HistoryState.Loading
@@ -39,6 +52,9 @@ class ScanHistoryViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Deletes a single scan entry and refreshes the list.
+     */
     fun deleteScan(scanId: String) {
         viewModelScope.launch {
             repository.deleteScan(scanId)
@@ -46,6 +62,9 @@ class ScanHistoryViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Clears all website scan entries for the current user.
+     */
     fun clearAllHistory() {
         viewModelScope.launch {
             repository.clearAllScans()

@@ -181,14 +181,16 @@ fun AppNavigation() {
                 AdminCourseEditorScreen(navController, courseTitle)
             }
 
+            // Use SavedStateHandle instead of large JSON in the route to avoid navigation failures
             composable(
-                route = "quizOverview?resultsJson={resultsJson}",
-                arguments = listOf(navArgument("resultsJson") { type = NavType.StringType })
+                route = "quizOverview"
             ) { backStackEntry ->
-                val json = backStackEntry.arguments?.getString("resultsJson") ?: ""
+                val json = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<String>("quizResultsJson") ?: ""
                 val type = object : TypeToken<List<QuizResult>>() {}.type
                 val results = try {
-                    Gson().fromJson<List<QuizResult>>(java.net.URLDecoder.decode(json, "UTF-8"), type)
+                    Gson().fromJson<List<QuizResult>>(json, type)
                 } catch (e: Exception) {
                     Log.e("SmartGuard", "Failed to parse quiz results", e)
                     emptyList()
@@ -207,6 +209,7 @@ fun AppNavigation() {
     }
 }
 
+//admin logout
 fun logout(nav: NavController) {
     Firebase.auth.signOut()
     nav.navigate("login") {

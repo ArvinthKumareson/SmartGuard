@@ -60,13 +60,13 @@ android {
 dependencies {
     val roomVersion = "2.6.1"
 
-    // ✅ Firebase BOM
+    // Firebase BOM
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-analytics")
 
-    // ✅ Room with SQLCipher
+    // Room with SQLCipher
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
@@ -74,16 +74,16 @@ dependencies {
     implementation("androidx.sqlite:sqlite:2.3.1")
     implementation("com.google.code.gson:gson:2.10.1")
 
-    // ✅ EncryptedSharedPreferences
+    // EncryptedSharedPreferences
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // ✅ Kotlin Serialization
+    // Kotlin Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
-    // ✅ DataStore Preferences
+    // DataStore Preferences
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // ✅ Jetpack Compose BOM
+    // Jetpack Compose BOM
     implementation(platform("androidx.compose:compose-bom:2024.01.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -92,15 +92,15 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    // ✅ Compose Navigation
+    // Compose Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    // ✅ Core AndroidX
+    // Core AndroidX
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     implementation("androidx.activity:activity-compose:1.9.1")
 
-    // ✅ Material Design
+    // Material Design
     implementation("com.google.android.material:material:1.12.0")
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -111,15 +111,15 @@ dependencies {
     // Coil for loading images from URLs
     implementation("io.coil-kt:coil-compose:2.5.0")
     
-    // ✅ Image Picker
+    // Image Picker
     implementation("androidx.activity:activity-ktx:1.9.1")
     
-    // ✅ ExoPlayer for video playback
+    // ExoPlayer for video playback
     implementation("androidx.media3:media3-exoplayer:1.1.1")
     implementation("androidx.media3:media3-ui:1.1.1")
     implementation("androidx.media3:media3-common:1.1.1")
 
-    // ✅ Testing
+    // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")

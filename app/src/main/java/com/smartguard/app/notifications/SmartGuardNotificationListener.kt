@@ -11,12 +11,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Listens to all notifications on the device (e.g. WhatsApp, SMS apps).
+ *
+ * This service is a key part of the scam detection pipeline:
+ *  - Filters out non-message notifications and noisy system updates.
+ *  - Extracts the most recent message text and sender/conversation metadata.
+ *  - Refreshes scam keywords from Firestore and scans the message.
+ *  - Stores suspicious messages in Firestore under the current user.
+ */
 class SmartGuardNotificationListener : NotificationListenerService() {
 
+    // Background scope used for keyword sync and Firestore writes.
     private val scope = CoroutineScope(Dispatchers.IO)
+    // Detection engine used to evaluate message risk.
     private lateinit var engine: DetectionEngine
+    // In-memory set of processed notification IDs to avoid duplicate work.
     private val processedNotifications = mutableSetOf<String>()
     
+    /**
+     * Maps a package name to a user-friendly app name for display and logs.
+     */
     private fun getAppDisplayName(packageName: String): String {
         return when (packageName) {
             "com.whatsapp" -> "WhatsApp"
@@ -27,11 +42,21 @@ class SmartGuardNotificationListener : NotificationListenerService() {
         }
     }
 
+    /**
+     * Initialise the detection engine once the service is created.
+     */
     override fun onCreate() {
         super.onCreate()
         engine = DetectionEngine(applicationContext)
     }
 
+    /**
+     * Called every time a notification is posted.
+     *
+     * This method is responsible for deciding whether the notification
+     * represents a user message we care about, extracting its text, and
+     * passing it through the detection pipeline.
+     */
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         if (sbn == null) return
 

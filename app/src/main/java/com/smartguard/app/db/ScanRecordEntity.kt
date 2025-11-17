@@ -3,6 +3,12 @@ package com.smartguard.app.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+/**
+ * Room entity representing a single suspicious (or scanned) message.
+ *
+ * This is stored locally in the encrypted Room database for quick access
+ * and offline history visualisation.
+ */
 @Entity(tableName = "scan_records")
 data class ScanRecordEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

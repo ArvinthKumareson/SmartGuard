@@ -18,7 +18,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * BroadcastReceiver that listens for incoming SMS messages.
+ *
+ * It reconstructs the full SMS body from PDUs, runs the detection engine,
+ * and, if keywords are matched, stores the result in the encrypted Room
+ * database and in the user's history store.
+ */
 class SmsReceiver : BroadcastReceiver() {
+    /**
+     * Entry point invoked by the system when an SMS broadcast is received.
+     */
     override fun onReceive(context: Context?, intent: Intent?) {
         Log.d("SmsReceiver", "SMS_RECEIVED triggered")
 

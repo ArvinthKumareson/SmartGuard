@@ -9,12 +9,21 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * Simple UI model representing a keyword row from Firestore.
+ */
 data class KeywordData(
     val id: String,
     val value: String,
     val explanation: String
 )
 
+/**
+ * ViewModel for managing scam detection keywords in the admin panel.
+ *
+ * It listens to the Firestore "keywords" collection and exposes a live
+ * list of [KeywordData], and provides operations to add and delete keywords.
+ */
 class KeywordViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
     private val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
@@ -23,6 +32,7 @@ class KeywordViewModel : ViewModel() {
     val keywords: StateFlow<List<KeywordData>> = _keywords
 
     init {
+        // Subscribe to changes in the keyword collection so the UI stays fresh.
         db.collection("keywords").addSnapshotListener { snapshot, error ->
             if (error != null) {
                 Log.e("KeywordViewModel", "Error listening to keywords: ${error.message}", error)
@@ -39,7 +49,7 @@ class KeywordViewModel : ViewModel() {
             _keywords.value = list
         }
     }
-    //Deprecated
+    // Deprecated helper for bulk keyword upload (kept for migration scripts/testing).
     suspend fun addKeywordsBulk(keywords: List<String>) {
         val db = FirebaseFirestore.getInstance()
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -64,6 +74,9 @@ class KeywordViewModel : ViewModel() {
     }
 
 
+    /**
+     * Adds a single keyword + explanation document to Firestore.
+     */
     fun addKeyword(value: String, explanation: String = "") {
         if (value.isBlank()) return
         val finalExplanation = explanation.ifBlank { "This keyword is commonly used in scam messages" }
@@ -85,6 +98,9 @@ class KeywordViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Deletes the keyword document with the given id.
+     */
     fun deleteKeyword(id: String) {
         db.collection("keywords").document(id).delete()
     }

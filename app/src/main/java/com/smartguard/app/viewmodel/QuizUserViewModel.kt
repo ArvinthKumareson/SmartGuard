@@ -9,6 +9,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * ViewModel for end-users taking quizzes.
+ *
+ * It loads a random subset of questions from the "quizzes" collection and
+ * exposes them as state to the quiz screen.
+ */
 class QuizUserViewModel : ViewModel() {
     private val _quiz = MutableStateFlow<List<QuizQ>>(emptyList())
     val quiz: StateFlow<List<QuizQ>> = _quiz
@@ -17,6 +23,7 @@ class QuizUserViewModel : ViewModel() {
     val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
+        // On creation, fetch quiz questions asynchronously.
         viewModelScope.launch {
             try {
                 val loadedQuiz = fetchQuizFromFirestore()
@@ -29,6 +36,10 @@ class QuizUserViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Fetches all quiz questions from Firestore and returns a random
+     * selection of up to 10 questions.
+     */
     private suspend fun fetchQuizFromFirestore(): List<QuizQ> {
         val snapshot = FirebaseFirestore.getInstance()
             .collection("quizzes")

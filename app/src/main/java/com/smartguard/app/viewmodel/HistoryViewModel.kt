@@ -14,6 +14,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.tasks.await
 
+/**
+ * UI-friendly representation of a scan record, combining message content,
+ * matched keywords, optional explanations and sender metadata.
+ */
 data class ScanResult(
     val id: Long = 0,
     val message: String,
@@ -25,6 +29,15 @@ data class ScanResult(
     val conversationTitle: String? = null
 )
 
+/**
+ * ViewModel responsible for exposing the user's scam message history.
+ *
+ * Design decisions:
+ *  - Firestore is treated as the single source of truth; a real-time
+ *    listener keeps [fullHistory] up to date.
+ *  - The local Room database is cleared on startup to avoid divergence
+ *    between local and cloud data.
+ */
 class HistoryViewModel(app: Application) : AndroidViewModel(app) {
 
     private val appContext = app.applicationContext
@@ -114,10 +127,12 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
         awaitClose { listener.remove() }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Convenience slice of [fullHistory] containing only SMS-sourced messages.
     val smsOnly: StateFlow<List<ScanResult>> = fullHistory
         .map { list -> list.filter { it.sourceApp == "SMS" } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Messages that matched at least 2 keywords, treated as more risky.
     val riskyMessages: StateFlow<List<ScanResult>> = fullHistory
         .map { list -> list.filter { it.matchedKeywords.size >= 2 } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

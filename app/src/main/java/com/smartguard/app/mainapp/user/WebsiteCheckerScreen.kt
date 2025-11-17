@@ -26,6 +26,12 @@ import com.smartguard.app.model.WebsiteScanResult
 import com.smartguard.app.viewmodel.WebsiteScanViewModel
 import com.smartguard.app.mainapp.resources.SmartGuardBottomBar
 
+/**
+ * Screen where users can input a website URL and check its safety.
+ *
+ * Delegates scanning logic to [WebsiteScanViewModel], shows progress and
+ * results, and provides navigation to the website scan history.
+ */
 @Composable
 fun WebsiteCheckerScreen(nav: NavController) {
     val viewModel: WebsiteScanViewModel = viewModel()

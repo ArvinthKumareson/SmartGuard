@@ -14,6 +14,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * UI state for the admin course management screen.
+ *
+ * Holds loading flags, current list of courses, and any transient error or
+ * success messages to show in the UI.
+ */
 data class AdminCourseUiState(
     val isLoading: Boolean = false,
     val courses: List<FirebaseCourseContent> = emptyList(),
@@ -22,6 +28,14 @@ data class AdminCourseUiState(
     val isUploading: Boolean = false
 )
 
+/**
+ * ViewModel for admin features related to scam awareness courses.
+ *
+ * Responsibilities:
+ *  - Load all courses from [CourseRepository].
+ *  - Create, update and delete course documents in Firestore.
+ *  - Upload course-related images/videos via [CloudinaryStorageHelper].
+ */
 class AdminCourseViewModel(application: Application) : AndroidViewModel(application) {
     
     private val _uiState = MutableStateFlow(AdminCourseUiState())
@@ -29,9 +43,13 @@ class AdminCourseViewModel(application: Application) : AndroidViewModel(applicat
     
     init {
         Log.d("AdminCourseViewModel", "ViewModel initialized")
+        // Eagerly load courses for the admin dashboard.
         loadCourses()
     }
     
+    /**
+     * Fetches all course definitions from Firestore via [CourseRepository].
+     */
     fun loadCourses() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -54,6 +72,10 @@ class AdminCourseViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
     
+    /**
+     * Creates a new course from the provided fields and persists it using
+     * [CourseRepository]. On success, reloads the course list.
+     */
     fun createCourse(
         title: String,
         description: String,
@@ -96,6 +118,9 @@ class AdminCourseViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
     
+    /**
+     * Updates an existing course identified by [oldTitle] with new content.
+     */
     fun updateCourse(
         oldTitle: String,
         title: String,
@@ -139,6 +164,9 @@ class AdminCourseViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
     
+    /**
+     * Deletes the course with the given [courseTitle] from Firestore.
+     */
     fun deleteCourse(courseTitle: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null, successMessage = null)
@@ -205,6 +233,9 @@ class AdminCourseViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
     
+    /**
+     * Clears transient error/success messages after they have been shown.
+     */
     fun clearMessages() {
         _uiState.value = _uiState.value.copy(error = null, successMessage = null)
     }

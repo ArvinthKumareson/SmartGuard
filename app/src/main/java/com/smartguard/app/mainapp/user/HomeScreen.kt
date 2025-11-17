@@ -36,6 +36,12 @@ data class FeatureItem(
     val route: String
 )
 
+/**
+ * Main home screen for normal users.
+ *
+ * Greets the user, provides a search bar over app features, and groups
+ * navigation entries into categories like Learn, Protect, and Discuss.
+ */
 @Composable
 fun HomeScreen(nav: NavController, vm: AuthViewModel) {
     val context = androidx.compose.ui.platform.LocalContext.current

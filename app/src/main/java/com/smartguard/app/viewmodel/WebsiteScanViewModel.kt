@@ -13,6 +13,10 @@ import kotlinx.coroutines.launch
 import java.net.URL
 import java.util.Base64
 
+/**
+ * ViewModel responsible for scanning websites using the VirusTotal API
+ * and exposing the result as a [ScanState] to the UI.
+ */
 class WebsiteScanViewModel : ViewModel() {
     
     private val _scanState = MutableStateFlow<ScanState>(ScanState.Idle)
@@ -21,6 +25,12 @@ class WebsiteScanViewModel : ViewModel() {
     private val repository = WebsiteScanRepository()
     private val apiKey = "d3f767faa1898e94b56bc3761828e10a49ac5d70b9c689dedafc0ed1a19b76e1"
 
+    /**
+     * Main entry point from the UI to scan a website.
+     *
+     * It normalises the URL, checks for an existing report, and if needed
+     * queues a new scan and polls VirusTotal until a report is ready.
+     */
     fun scanWebsite(urlString: String) {
         viewModelScope.launch {
             try {
@@ -98,6 +108,11 @@ class WebsiteScanViewModel : ViewModel() {
         }
     }
     
+    /**
+     * Converts a VirusTotal [ReportAttributes] object into a domain
+     * [WebsiteScanResult], saves it through the repository, and updates
+     * the public [scanState].
+     */
     private suspend fun processReport(url: String, report: com.smartguard.app.api.ReportAttributes) {
         val stats = report.last_analysis_stats
         val malicious = stats?.malicious ?: 0
@@ -124,10 +139,17 @@ class WebsiteScanViewModel : ViewModel() {
         _scanState.value = ScanState.Success(result)
     }
     
+    /**
+     * VirusTotal expects URLs to be base64-url encoded without padding.
+     */
     private fun encodeUrlForVirusTotal(url: String): String {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(url.toByteArray())
     }
 
+    /**
+     * Normalises user input into a full URL string, adding https:// when
+     * necessary and stripping leading "@" or "www." helper characters.
+     */
     private fun normalizeUrl(url: String): String {
         var normalized = url.trim()
         
@@ -141,6 +163,9 @@ class WebsiteScanViewModel : ViewModel() {
         return "https://$normalized"
     }
 
+    /**
+     * Basic syntactic validation using [URL]; ensures we at least have a host.
+     */
     private fun isValidUrl(url: String): Boolean {
         return try {
             val urlObj = URL(url)

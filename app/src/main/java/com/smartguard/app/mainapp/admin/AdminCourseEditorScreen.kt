@@ -35,6 +35,12 @@ import com.smartguard.app.mainapp.common.BackgroundWrapper
 import com.smartguard.app.viewmodel.AdminCourseViewModel
 import kotlinx.coroutines.launch
 
+/**
+ * Admin screen for creating or editing a single course.
+ *
+ * Lets admins edit course metadata (title, description, level, "new" flag)
+ * and manage a list of detailed tips, including optional images/videos.
+ */
 @Composable
 fun AdminCourseEditorScreen(
     nav: NavController,

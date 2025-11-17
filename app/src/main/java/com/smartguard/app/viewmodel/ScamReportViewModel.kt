@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+/**
+ * UI state for submitting a scam report.
+ */
 sealed class ReportSubmitState {
     object Idle : ReportSubmitState()
     object Loading : ReportSubmitState()
@@ -21,6 +24,9 @@ sealed class ReportSubmitState {
     data class Error(val message: String) : ReportSubmitState()
 }
 
+/**
+ * UI state for scam report lists (approved list and admin list).
+ */
 sealed class ReportsListState {
     object Loading : ReportsListState()
     data class Success(val reports: List<ScamReport>) : ReportsListState()
@@ -28,6 +34,9 @@ sealed class ReportsListState {
     object Empty : ReportsListState()
 }
 
+/**
+ * UI state for comments attached to a scam report.
+ */
 sealed class CommentsState {
     object Loading : CommentsState()
     data class Success(val comments: List<ScamComment>) : CommentsState()
@@ -35,6 +44,14 @@ sealed class CommentsState {
     object Empty : CommentsState()
 }
 
+/**
+ * ViewModel orchestrating scam report submission and moderation flows.
+ *
+ * It uses [ScamReportRepository] to submit new reports (with optional
+ * media upload), load approved reports for public display, and support
+ * admin operations like updating status, deleting reports and handling
+ * comments/likes.
+ */
 class ScamReportViewModel : ViewModel() {
     val repository = ScamReportRepository()
 
@@ -54,6 +71,11 @@ class ScamReportViewModel : ViewModel() {
         loadApprovedReports()
     }
 
+    /**
+     * Submits a new scam report, optionally uploading an image to Cloudinary.
+     *
+     * The result is reflected via [_submitState] for the UI to react.
+     */
     fun submitReport(
         context: Context,
         title: String,
@@ -87,10 +109,17 @@ class ScamReportViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Resets the report submission state to Idle.
+     */
     fun resetSubmitState() {
         _submitState.value = ReportSubmitState.Idle
     }
 
+    /**
+     * Loads approved reports for the public feed, with multiple fallbacks in
+     * case of Firestore index or query issues.
+     */
     fun loadApprovedReports() {
         viewModelScope.launch {
             Log.d("ScamReportViewModel", "Starting to load approved reports...")
@@ -141,6 +170,9 @@ class ScamReportViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Loads all reports for admin viewing and moderation.
+     */
     fun loadAllReports() {
         viewModelScope.launch {
             try {
@@ -159,6 +191,9 @@ class ScamReportViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Loads comments for a specific report and updates [_commentsState].
+     */
     fun loadComments(reportId: String) {
         viewModelScope.launch {
             repository.getReportComments(reportId).collectLatest { comments ->
@@ -171,12 +206,18 @@ class ScamReportViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Adds a comment to a specific report.
+     */
     fun addComment(reportId: String, comment: String) {
         viewModelScope.launch {
             repository.addComment(reportId, comment)
         }
     }
 
+    /**
+     * Toggles the like status for a report for the current user.
+     */
     fun toggleLike(reportId: String) {
         viewModelScope.launch {
             repository.toggleLike(reportId)
@@ -190,18 +231,27 @@ class ScamReportViewModel : ViewModel() {
         loadApprovedReports()
     }
 
+    /**
+     * Updates the status and optional moderator note for a report.
+     */
     fun updateReportStatus(reportId: String, status: String, moderatorNote: String? = null) {
         viewModelScope.launch {
             repository.updateReportStatus(reportId, status, moderatorNote)
         }
     }
 
+    /**
+     * Deletes a report (admin-only operation).
+     */
     fun deleteReport(reportId: String) {
         viewModelScope.launch {
             repository.deleteReport(reportId)
         }
     }
 
+    /**
+     * Deletes a comment from a report.
+     */
     fun deleteComment(commentId: String, reportId: String) {
         viewModelScope.launch {
             repository.deleteComment(commentId, reportId)

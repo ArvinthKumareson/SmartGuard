@@ -26,6 +26,13 @@ import com.smartguard.app.mainapp.common.BackgroundWrapper
 import com.smartguard.app.mainapp.resources.GradientButton
 import com.smartguard.app.viewmodel.AuthViewModel
 
+/**
+ * Entry screen for authentication.
+ *
+ * Provides login and signup flows using [AuthViewModel], validates email and
+ * password, and routes the user either to the admin dashboard or the normal
+ * home screen based on their role in Firestore.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(nav: NavController, vm: AuthViewModel = viewModel()) {
@@ -230,6 +237,9 @@ fun LoginScreen(nav: NavController, vm: AuthViewModel = viewModel()) {
     }
 }
 
+/**
+ * Dialog that allows users to request a password reset email via Firebase.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResetPasswordDialog(

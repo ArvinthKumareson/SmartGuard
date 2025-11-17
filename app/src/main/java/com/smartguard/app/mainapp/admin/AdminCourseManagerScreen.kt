@@ -27,6 +27,12 @@ import com.smartguard.app.data.FirebaseCourseContent
 import com.smartguard.app.mainapp.common.BackgroundWrapper
 import com.smartguard.app.viewmodel.AdminCourseViewModel
 
+/**
+ * Admin screen listing all scam awareness courses.
+ *
+ * Displays course statistics, loading/empty states and a list of courses
+ * that can be edited or deleted via the editor screen.
+ */
 @Composable
 fun AdminCourseManagerScreen(
     nav: NavController,

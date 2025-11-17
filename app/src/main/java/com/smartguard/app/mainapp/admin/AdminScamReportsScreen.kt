@@ -26,6 +26,13 @@ import com.smartguard.app.viewmodel.ScamReportViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Admin screen for moderating scam reports submitted by users.
+ *
+ * Shows reports grouped by status (pending, approved, rejected) and lets
+ * admins approve, reject with notes, or delete reports, as well as view
+ * full report details.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScamReportsScreen(nav: NavController) {
@@ -179,6 +186,10 @@ fun AdminScamReportsScreen(nav: NavController) {
     }
 }
 
+/**
+ * Card summarising a single scam report with status, key fields, and
+ * moderation actions (approve/reject/delete).
+ */
 @Composable
 fun AdminReportCard(
     report: ScamReport,

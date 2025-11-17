@@ -18,8 +18,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-// Handles user authentication and keyword management
-// Manages login, signup, logout, password reset, and keyword syncing
+/**
+ * ViewModel responsible for user authentication and keyword lifecycle.
+ *
+ * It wraps Firebase Authentication for login, signup, logout and password
+ * reset, and also coordinates syncing of scam detection keywords via
+ * [EncryptedKeywords] when a user session starts or ends.
+ */
 class AuthViewModel(app: Application) : AndroidViewModel(app) {
     private val auth = FirebaseAuth.getInstance()
     private val _currentUser = MutableStateFlow(auth.currentUser)
@@ -28,8 +33,11 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
     private val appContext = app.applicationContext
 
-    // Logs in user with email and password
-    // Syncs keywords after successful login
+    /**
+     * Logs a user in with email/password and, on success, refreshes the
+     * scam keyword cache and restarts the real-time keyword sync.
+     * auth = firebase
+     */
     fun login(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
         Log.d("Auth", "login() called with email=$email")
         auth.signInWithEmailAndPassword(email, password)
@@ -63,6 +71,10 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
     }
+    /**
+     * Looks up the current user's role from Firestore and reports whether
+     * they are an admin user.
+     */
     fun checkAdminStatus(onResult: (Boolean) -> Unit) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid == null) {
@@ -80,8 +92,12 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             }
     }
 
-    // Creates new user account with email, password, and display name
-    // Syncs keywords on successful account creation
+    /**
+     * Creates a new user account and sets the display name.
+     *
+     * On success, it also triggers a keyword sync and starts real-time
+     * keyword updates for the newly created user.
+     */
     fun signup(email: String, password: String, name: String, onResult: (Boolean, String?) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -131,6 +147,9 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             }
     }
 
+    /**
+     * Maps low-level Firebase signup exceptions into user-friendly messages.
+     */
     private fun mapFirebaseSignupError(ex: Exception?): String {
         return when (ex) {
             is FirebaseAuthWeakPasswordException -> "Password must be at least 6 characters"
@@ -146,8 +165,9 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // Sends password reset email to user's registered email address
-    // Uses Firebase's built-in email sending functionality
+    /**
+     * Sends a Firebase password reset email to the given address.
+     */
     fun resetPassword(email: String, onResult: (Boolean, String) -> Unit) {
         Log.d("Auth", "Sending password reset email to: $email")
         auth.sendPasswordResetEmail(email)
@@ -166,7 +186,9 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             }
     }
 
-    // Logs out current user and stops real-time keyword syncing
+    /**
+     * Logs the current user out and stops real-time keyword syncing.
+     */
     fun logout() {
         Log.d("Auth", "Logging out...")
         // Stop listening for keyword updates from Firestore

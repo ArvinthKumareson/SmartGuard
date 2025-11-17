@@ -24,6 +24,12 @@ import com.smartguard.app.viewmodel.FeedbackViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Admin screen for reviewing and responding to user feedback.
+ *
+ * Uses [FeedbackViewModel] to load all feedback entries, filter them by
+ * status, and allows admins to mark items as reviewed and send responses.
+ */
 @Composable
 fun AdminFeedbackScreen(nav: NavController) {
     val viewModel: FeedbackViewModel = viewModel()
@@ -42,11 +48,6 @@ fun AdminFeedbackScreen(nav: NavController) {
                 navigationIcon = {
                     IconButton(onClick = { nav.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { viewModel.loadAllFeedback() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E))
@@ -148,6 +149,11 @@ fun AdminFeedbackScreen(nav: NavController) {
     }
 }
 
+/**
+ * Card component showing details of a single user feedback item,
+ * including rating, category, optional admin response, and actions for
+ * responding or marking as reviewed.
+ */
 @Composable
 fun AdminFeedbackCard(feedback: UserFeedback, viewModel: FeedbackViewModel) {
     var showResponseDialog by remember { mutableStateOf(false) }
