@@ -8,6 +8,9 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -48,6 +51,11 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Debug: verify both devices use the same Firebase project and are authenticated
+        val options = FirebaseApp.getInstance().options
+        Log.d("FirebaseDebug", "projectId=${options.projectId}, appId=${options.applicationId}")
+        Log.d("FirebaseDebug", "currentUser=${FirebaseAuth.getInstance().currentUser?.uid}")
 
         // Request runtime permissions
         val permissions = mutableListOf(
@@ -190,13 +198,18 @@ fun AppNavigation() {
                     ?.get<String>("quizResultsJson") ?: ""
                 val type = object : TypeToken<List<QuizResult>>() {}.type
                 val results = try {
-                    Gson().fromJson<List<QuizResult>>(json, type)
+                    if (json.isNotEmpty()) Gson().fromJson<List<QuizResult>>(json, type) else emptyList()
                 } catch (e: Exception) {
                     Log.e("SmartGuard", "Failed to parse quiz results", e)
                     emptyList()
                 }
                 QuizOverviewScreen(navController, results) {
-                    navController.popBackStack()
+                    // Safely pop back, defaulting to quiz if back stack is empty
+                    if (!navController.popBackStack()) {
+                        navController.navigate("quiz") {
+                            popUpTo("quizOverview") { inclusive = true }
+                        }
+                    }
                 }
             }
         }

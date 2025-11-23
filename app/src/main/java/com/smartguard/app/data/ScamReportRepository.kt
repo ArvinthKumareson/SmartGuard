@@ -98,14 +98,17 @@ class ScamReportRepository {
     }
 
     fun getReportComments(reportId: String): Flow<List<ScamComment>> {
+        // Use unordered query to avoid excluding comments due to timestamp type/availability,
+        // then sort on the client by timestamp.
         return commentsCollection
             .whereEqualTo("reportId", reportId)
-            .orderBy("timestamp", Query.Direction.ASCENDING)
             .snapshots()
             .map { snapshot ->
                 snapshot.documents.mapNotNull { doc ->
                     doc.toObject(ScamComment::class.java)?.copy(id = doc.id)
                 }
+                // Sort client-side by timestamp (oldest first)
+                .sortedBy { it.timestamp.seconds }
             }
     }
 

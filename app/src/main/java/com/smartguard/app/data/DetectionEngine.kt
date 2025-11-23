@@ -40,7 +40,7 @@ class DetectionEngine(private val context: Context) {
     }
     
     /**
-     * Retrieves the map of keyword -> human-readable explanation.
+     * Retrieves the map of keyword -> explanation of keyword.
      *
      * Explanations are authored by an admin in Firestore and synced down
      * to the device via [EncryptedKeywords]. These are later surfaced to
@@ -51,7 +51,7 @@ class DetectionEngine(private val context: Context) {
     }
     
     /**
-     * Scans a message and returns all matched keywords with their explanations.
+     * Scans a message for keywords and returns all matched keywords with their explanations.
      *
      *  1. Normalizes the message to lowercase for case-insensitive matching.
      *  2. For each keyword currently stored on the device, checks whether the

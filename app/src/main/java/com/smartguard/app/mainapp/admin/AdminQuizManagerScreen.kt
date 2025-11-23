@@ -598,7 +598,7 @@ fun AdminQuizManagerScreen(nav: NavController, vm: QuizAdminViewModel = viewMode
                                         style = MaterialTheme.typography.labelMedium,
                                         color = Color.White.copy(alpha = 0.6f)
                                     )
-                                    // ✅ Reason text white
+                                    // Reason text white
                                     Text(
                                         q.reason,
                                         style = MaterialTheme.typography.bodyMedium,

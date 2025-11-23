@@ -12,6 +12,9 @@ import com.smartguard.app.util.CloudinaryStorageHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 
 /**
@@ -66,6 +69,14 @@ class ScamReportViewModel : ViewModel() {
 
     private val _commentsState = MutableStateFlow<CommentsState>(CommentsState.Loading)
     val commentsState: StateFlow<CommentsState> = _commentsState
+
+    // Tracks the currently active Firestore listener for comments so that we
+    // don't have multiple report comment streams writing into the same state.
+    private var commentsJob: kotlinx.coroutines.Job? = null
+    private var currentCommentReportId: String? = null
+    
+    // Separate flows per report to keep listeners alive
+    private val commentFlows = mutableMapOf<String, StateFlow<List<ScamComment>>>()
 
     init {
         loadApprovedReports()
@@ -193,25 +204,56 @@ class ScamReportViewModel : ViewModel() {
 
     /**
      * Loads comments for a specific report and updates [_commentsState].
+     *
+     * Uses stateIn to cache comments in a persistent StateFlow per report,
+     * so new subscribers always get the latest snapshot immediately.
+     * This ensures comments from other devices are visible even if the dialog
+     * was closed when they arrived.
      */
     fun loadComments(reportId: String) {
-        viewModelScope.launch {
-            repository.getReportComments(reportId).collectLatest { comments ->
-                if (comments.isEmpty()) {
-                    _commentsState.value = CommentsState.Empty
+        // Cancel previous listener if switching reports
+        if (currentCommentReportId != reportId) {
+            commentsJob?.cancel()
+            currentCommentReportId = reportId
+        }
+
+        // Get or create a cached StateFlow for this report
+        val reportCommentsFlow = commentFlows.getOrPut(reportId) {
+            repository.getReportComments(reportId)
+                .map { comments ->
+                    Log.d("CommentsDebug", "reportId=$reportId, comments.size=${comments.size}")
+                    comments.forEach { c ->
+                        Log.d("CommentsDebug", "commentId=${c.id}, userId=${c.userId}, text=${c.comment}")
+                    }
+                    comments
+                }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = emptyList()
+                )
+        }
+
+        // Collect from the cached flow and update commentsState
+        commentsJob = viewModelScope.launch {
+            reportCommentsFlow.collect { comments ->
+                _commentsState.value = if (comments.isEmpty()) {
+                    CommentsState.Empty
                 } else {
-                    _commentsState.value = CommentsState.Success(comments)
+                    CommentsState.Success(comments)
                 }
             }
         }
     }
 
     /**
-     * Adds a comment to a specific report.
+     * Adds a comment to a specific report and immediately refreshes the comments list.
      */
     fun addComment(reportId: String, comment: String) {
         viewModelScope.launch {
             repository.addComment(reportId, comment)
+            // Refresh comments immediately so new comment appears instantly
+            loadComments(reportId)
         }
     }
 

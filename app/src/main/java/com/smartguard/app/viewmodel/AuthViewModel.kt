@@ -170,6 +170,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun resetPassword(email: String, onResult: (Boolean, String) -> Unit) {
         Log.d("Auth", "Sending password reset email to: $email")
+        //From firebase authentication library
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {

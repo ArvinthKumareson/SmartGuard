@@ -80,7 +80,7 @@ fun HomeScreen(nav: NavController, vm: AuthViewModel) {
     val protectFeatures = remember {
         listOf(
             FeatureItem("Website Scanner", "Check if a website is safe", Icons.Default.Security, Color(0xFF2196F3), "website_checker"),
-            FeatureItem("Scam Messages", "Review detected suspicious messages", Icons.Default.Message, Color(0xFFFF5252), "history")
+            FeatureItem("Potential Scam Messages", "Review detected suspicious messages", Icons.Default.Message, Color(0xFFFF5252), "history")
         )
     }
     

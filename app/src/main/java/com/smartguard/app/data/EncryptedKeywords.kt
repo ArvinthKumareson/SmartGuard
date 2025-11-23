@@ -107,7 +107,7 @@ object EncryptedKeywords {
      * immediately see new keywords without user interaction.
      */
     fun startRealtimeSync(context: Context) {
-        // Remove existing listener if any
+        // Listen from firebase and update local storage
         keywordListener?.remove()
         
         keywordListener = FirebaseFirestore.getInstance()
